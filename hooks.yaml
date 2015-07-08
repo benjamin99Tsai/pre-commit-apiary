@@ -1,0 +1,6 @@
+- id: apiary-validation
+  name: Validate the syntax of the apiary documents
+  description: This hook will help to validate the apiary documents.
+  entry: validate-apiary
+  language: python
+  files: \.apib$
