@@ -7,7 +7,7 @@ setup(
     name='pre_commit_apiary',
     version='0.0.1.a1',
     author='Arsenal_49',
-    packges=find_packages('.', exclude=('tests*', 'testing*')),
+    packages=find_packages('.', exclude=('tests*', 'testing*')),
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
