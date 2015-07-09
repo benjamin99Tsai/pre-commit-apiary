@@ -1,11 +1,12 @@
 __author__ = 'admin'
 
 import argparse
+import os
 
 # ----------------------------------------------------------------------------------------------------------------------
 # validate the single file with the filename:
 def _validate_with_filename(filename):
-    print('start validate file: %s' % filename)
+    print('start validate file: %s/%s' % (os.getcwd(), filename))
     return 0
 
 # ----------------------------------------------------------------------------------------------------------------------
