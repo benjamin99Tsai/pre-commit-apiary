@@ -156,6 +156,11 @@ class ApiaryValidator:
             else:
                 try:
                     self.decoder.scan_line(line)
+
+                except AssertionError as e:
+                    error = ApiarySyntaxError(message='DecodeAssertion: %s' % e.args)
+                    self.state = _state_error
+
                 except Exception as e:
                     error = ApiarySyntaxError(message='DecodeException: %s' % e.message)
                     self.state = _state_error
