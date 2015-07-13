@@ -396,6 +396,8 @@ class ApiDecoder(object):
             next_chart = line[index]
             if next_chart in WHITESPACE_STRING:
                 index += _white_search(line[index:]).end()
+                if index == len(line):
+                    self._append_buffered_element_to_current_object()
                 continue
 
             elif next_chart == "{":
