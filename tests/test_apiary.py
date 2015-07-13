@@ -189,3 +189,33 @@ class ApiaryTest(TestCase):
             self.assertFalse(valid)
             self.assertTrue(isinstance(error, ApiaryError))
             self.assertEqual(error.type, expected_error.type)
+
+    def _test_with_request_content(self, validator, content_file, expected_error_line_counts=list()):
+        print('\nTest with request from: %s' % content_file)
+        validator.state = _state_read_request_tag
+        with open(content_file, 'r') as f:
+            lines = f.readlines()
+
+        self._test_with_lines_of_content(validator, lines, expected_error_line_counts)
+
+    def _test_with_response_content(self, validator, content_file, expected_error_line_counts=list()):
+        validator.state = _state_read_response_tag
+        print('\nTest with response from: %s' % content_file)
+        with open(content_file, 'r') as f:
+            lines = f.readlines()
+
+        self._test_with_lines_of_content(validator, lines, expected_error_line_counts)
+
+    def _test_with_lines_of_content(self, validator, lines, expected_error_line_counts):
+        line_count = 0
+        for line in lines:
+            line_count += 1
+            valid, error = validator._read_line(line)
+            if line_count in expected_error_line_counts:
+                self.assertFalse(valid)
+                self.assertEqual(error.type, ApiarySyntaxError().type)
+            else:
+                if error:
+                    print('error(@ line %d): %s' % (line_count,error))
+                self.assertTrue(valid)
+                self.assertEqual(error, None)
