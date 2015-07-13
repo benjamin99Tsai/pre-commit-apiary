@@ -1,0 +1,12 @@
+{
+  "content": [
+    {
+      "name": "Alice",        // [string] user name
+      "age": 28               // [number] age
+    },
+    ...
+  ]
+  "limit": 10,                // [number]
+  "tital": 5,                 // [number]
+  "offset": 0                // [number]
+}
