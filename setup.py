@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-install_requires = []
+install_requires = ['six']
 
 setup(
     name='pre_commit_apiary',
