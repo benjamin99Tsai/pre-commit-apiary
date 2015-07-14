@@ -260,7 +260,7 @@ class ApiaryTest(TestCase):
     # Test Case: validate the parameter related issues
     # ------------------------------------------------------------------------------------------------------------------
     def test_get_parameters(self):
-        test_title = '## TEST API [/test/api/pattern/{param_1}/with/{param_2}/{?p1,p2,p3}]'
+        test_title = '## TEST API [/test/api/pattern/{param_1}/with/{param_2}/postfix{?p1,p2,p3}]'
         expected = ['param_1', 'param_2', 'p1', 'p2', 'p3']
         results  = ApiaryValidator._get_parameters_from_api_title(test_title)
         self.assertEqual(results, expected)
@@ -361,7 +361,6 @@ class ApiaryTest(TestCase):
             lines = f.readlines()
         for line in lines:
             validator.decoder.scan_line(line)
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for parsing the template for invalid request/response content:
