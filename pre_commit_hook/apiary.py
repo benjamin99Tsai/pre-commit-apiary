@@ -130,11 +130,7 @@ class ApiaryValidator:
                     self.decoder.clear()
                     self.state = _state_read_response_tag
             else:
-                try:
-                    self.decoder.scan_line(line)
-                except Exception as e:
-                    error = ApiarySyntaxError(message='DecodeException: %s' % e.message)
-                    self.state = _state_error
+                error = self._scan_line_by_decoder(line)
 
         elif self.state == _state_read_response_tag:
             if _group_title(line):
@@ -154,19 +150,28 @@ class ApiaryValidator:
                     self.state = _state_read_api_title
 
             else:
-                try:
-                    self.decoder.scan_line(line)
-
-                except AssertionError as e:
-                    error = ApiarySyntaxError(message='DecodeAssertion: %s' % e.args)
-                    self.state = _state_error
-
-                except Exception as e:
-                    error = ApiarySyntaxError(message='DecodeException: %s' % e.message)
-                    self.state = _state_error
+                error = self._scan_line_by_decoder(line)
 
         else:   # _state_init
             if _group_title(line):
                 self._state = _state_read_group_title
 
         return (error is None), error
+
+    def _scan_line_by_decoder(self, line):
+        assert self.decoder is not None
+        assert isinstance(line, str)
+        error = None
+        try:
+            self.decoder.scan_line(line)
+
+        except AssertionError as e:
+            error = ApiarySyntaxError(message='DecoderAssertion: %s' % e.args)
+            self.state = _state_error
+
+        except Exception as e:
+            error = ApiarySyntaxError(message='DecodeException: %s' % e.message)
+            self.state = _state_error
+
+        return error
+
