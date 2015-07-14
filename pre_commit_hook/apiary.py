@@ -156,6 +156,7 @@ class ApiaryValidator:
                     self.state = _state_error
                 else:
                     self.decoder.clear()
+                    self._parameters = ApiaryValidator._get_parameters_from_api_title(line)
                     self.state = _state_read_api_title
 
             elif _api_method(line):
