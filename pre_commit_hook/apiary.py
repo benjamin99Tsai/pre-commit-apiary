@@ -161,7 +161,7 @@ class ApiaryValidator:
 
         else:   # _state_init
             if _group_title(line):
-                self._state = _state_read_group_title
+                self.state = _state_read_group_title
 
         return (error is None), error
 
