@@ -1,8 +1,9 @@
 __author__ = 'Arsenal_49'
 
 import re
+import string
 from pre_commit_hook.decoder import ApiDecoder as ContentDecoder
-from pre_commit_hook.error import ApiarySyntaxError
+from pre_commit_hook.error import ApiarySyntaxError, ApiaryParameterNotDefinedError
 
 # Define the pattern match/search
 _group_title    = re.compile(r'^#(\s)+.*').match
@@ -31,6 +32,7 @@ class ApiaryValidator:
         self.state = _state_init
         self.decoder = ContentDecoder()
         self._read_parameter_string = False
+        self._parameters = list()
 
     def validate_file(self, file):
         validation_result = True
@@ -65,6 +67,7 @@ class ApiaryValidator:
                     error = ApiarySyntaxError(message='Cannot find the api url in line: %s' % line)
                     self.state = _state_error
                 else:
+                    self._parameters = ApiaryValidator._get_parameters_from_api_title(line)
                     self.state = _state_read_api_title
 
             elif _api_method(line) or _param_title(line) or _param_string(line) or _request_title(line) \
@@ -100,6 +103,10 @@ class ApiaryValidator:
         elif self.state == _state_read_param_tag:
             if _param_string(line):
                 self._read_parameter_string = True
+                parameter = ApiaryValidator._get_parameter_from_parameter_string(line)
+                if parameter not in self._parameters:
+                    error = ApiaryParameterNotDefinedError(parameter=parameter)
+                    self.state = _state_error
 
             elif _request_title(line):
                 if not self._read_parameter_string:
@@ -175,3 +182,37 @@ class ApiaryValidator:
 
         return error
 
+    @staticmethod
+    def _get_parameters_from_api_title(title):
+        assert isinstance(title, str) and _api_title(title)
+        url_search = re.search(r'\[.+\]', title)
+        assert url_search is not None, 'Cannot find the url content in the title %s' % title
+        parameters = list()
+        url_elements = url_search.group()[1:-1].split('/')
+        param_match = re.compile(r'^\{.+\}$').match
+        for element in url_elements:
+            match = param_match(element)
+            if match:
+                content = match.group()
+                if content[1] == '?':
+                    for p in content[2:-1].split(','):
+                        parameters.append(p)
+                else:
+                    parameters.append(content[1:-1])
+
+        return parameters
+
+    @staticmethod
+    def _get_parameter_from_parameter_string(parameter_string):
+        space  = ' \t'
+        accepted_characters = string.ascii_letters + string.digits + '_-'
+        buffer = None
+        for chart in parameter_string:
+            if chart in space and buffer is not None:
+                break
+            if chart in accepted_characters:
+                if buffer:
+                    buffer += chart
+                else:
+                    buffer = chart
+        return buffer
