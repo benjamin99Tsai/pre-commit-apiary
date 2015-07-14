@@ -12,7 +12,7 @@ from pre_commit_hook.apiary import _state_read_api_method
 from pre_commit_hook.apiary import _state_read_param_tag
 from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
-from pre_commit_hook.error import ApiaryError, ApiarySyntaxError
+from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
 _TEST_API_METHOD_TEMPLATE = '### api action [%s]'
@@ -221,6 +221,30 @@ class ApiaryTest(TestCase):
         self._test_invalid_template(validator=v,
                                     template=path.join(response_path, 'response_template.json'),
                                     test_type=_TEST_TYPE_RESPONSE_CONTENT)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Test Case: validate the parameter related issues
+    # ------------------------------------------------------------------------------------------------------------------
+    def test_get_parameters(self):
+        test_title = '## TEST API [/test/api/pattern/{param_1}/with/{param_2}/{?p1,p2,p3}]'
+        expected = ['param_1', 'param_2', 'p1', 'p2', 'p3']
+        results  = ApiaryValidator._get_parameters_from_api_title(test_title)
+        self.assertEqual(results, expected)
+
+    def test_parameter(self):
+        v = ApiaryValidator()
+        v.state = _state_read_param_tag
+        v._parameters = ['p1', 'p2', 'p3']
+
+        valid, error = v._read_line('+ p1   (string) ... test parameter 1')
+        self.assertTrue(valid)
+
+        valid, error = v._read_line('       + p2 (string) ... test parameter 2')
+        self.assertTrue(valid)
+
+        valid, error = v._read_line('+ p4 (string) ... test parameter 3')
+        self.assertFalse(valid)
+        self.assertEqual(error, ApiaryParameterNotDefinedError())
 
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for testing:
