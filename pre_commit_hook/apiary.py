@@ -59,7 +59,7 @@ class ApiaryValidator:
 
     def _read_line(self, line):
         error = None
-        assert self.state > 0, 'StateError: the validator is in the error state with line %s' % line
+        assert not self.state < 0, 'StateError: the validator is in the error state with line %s' % line
 
         if self.state == _state_read_group_title:
             if _api_title(line):
