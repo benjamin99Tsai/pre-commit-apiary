@@ -6,6 +6,7 @@ from unittest import TestCase
 from os import listdir
 from os import path
 from pre_commit_hook.apiary import ApiaryValidator
+from pre_commit_hook.apiary import _state_init
 from pre_commit_hook.apiary import _state_read_group_title
 from pre_commit_hook.apiary import _state_read_api_title
 from pre_commit_hook.apiary import _state_read_api_method
@@ -14,6 +15,7 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
+_TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
 _TEST_API_METHOD_TEMPLATE = '### api action [%s]'
 _TEST_PARAMETER_TAG = '+ Parameters'
@@ -27,6 +29,22 @@ _current_file_path = path.dirname(path.abspath(__file__))
 
 
 class ApiaryTest(TestCase):
+    # ------------------------------------------------------------------------------------------------------------------
+    # Test Case: init state
+    # ------------------------------------------------------------------------------------------------------------------
+    def test_read_line_state_init(self):
+        v = ApiaryValidator()
+        state = _state_init
+        self._test_read_line(line=' ',
+                             validator=v,
+                             state=state,
+                             expected_state=_state_init)
+
+        self._test_read_line(line=_TEST_GROUP_TITLE,
+                             validator=v,
+                             state=state,
+                             expected_state=_state_read_group_title)
+
     # ------------------------------------------------------------------------------------------------------------------
     # Test Case: read_group_title
     # ------------------------------------------------------------------------------------------------------------------
