@@ -225,6 +225,17 @@ class ApiaryTest(TestCase):
                              validator=v,
                              expected_state=_state_read_response_tag)
 
+        self._test_read_line(line=_TEST_API_TITLE,
+                             state=state,
+                             validator=v,
+                             expected_state=_state_read_api_title)
+
+        for method in ['GET', 'POST', 'PUT', 'DELETE']:
+            self._test_read_line(line=_TEST_API_METHOD_TEMPLATE % method,
+                                 state=state,
+                                 validator=v,
+                                 expected_state=_state_read_api_method)
+
     def test_read_line_state_read_response_tag_with_valid_response_content(self):
         v = ApiaryValidator()
         responses_path = '%s/response/' % _current_file_path
