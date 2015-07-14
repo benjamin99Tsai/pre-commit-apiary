@@ -188,7 +188,7 @@ class ApiaryValidator:
             self.state = _state_error
 
         except Exception as e:
-            error = ApiarySyntaxError(message='DecodeException: %s' % e.message)
+            error = ApiarySyntaxError(message='DecodeException: %s' % getattr(e, 'message', None))
             self.state = _state_error
 
         return error
@@ -200,16 +200,23 @@ class ApiaryValidator:
         assert url_search is not None, 'Cannot find the url content in the title %s' % title
         parameters = list()
         url_elements = url_search.group()[1:-1].split('/')
-        param_search = re.compile(r'\{.+\}').search
         for element in url_elements:
-            match = param_search(element)
-            if match:
-                content = match.group()
-                if content[1] == '?':
-                    for p in content[2:-1].split(','):
-                        parameters.append(p)
-                else:
-                    parameters.append(content[1:-1])
+            buffer = None
+            for chart in element:
+                if chart == '{':
+                    buffer = ''
+
+                elif chart == '}':
+                    sub_parameters = buffer.split(',')
+                    for param in sub_parameters:
+                        parameters.append(param)
+                    buffer = None
+
+                elif chart == '?':
+                    continue
+
+                elif buffer is not None:
+                    buffer += chart
 
         return parameters
 
