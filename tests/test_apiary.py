@@ -274,11 +274,23 @@ class ApiaryTest(TestCase):
     def test_read_api_title_with_parameters(self):
         v = ApiaryValidator()
         test_title = '## TEST API [/test/api/pattern/{param_1}/with/{param_2}/{?p1,p2,p3}]'
-        v.state = _state_read_group_title
-        v._read_line(test_title)
         expected = ['param_1', 'param_2', 'p1', 'p2', 'p3']
-        results = v._parameters
-        self.assertEqual(results, expected)
+
+        for state in [_state_read_group_title, _state_read_response_tag]:
+            v._parameters.clear()
+            v.state = state
+            # load the response content if necessary:
+            if state == _state_read_response_tag:
+                content_file = path.join(path.dirname(path.abspath(__file__)),
+                                         'response',
+                                         'response_good_example001.json')
+                ApiaryTest._load_content_to_validator(v, content_file)
+
+            v._read_line(test_title)
+            results = v._parameters
+            self.assertEqual(results, expected)
+
+
 
     def test_check_if_parameter_is_defined(self):
         v = ApiaryValidator()
