@@ -173,7 +173,11 @@ class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
     def test_read_line_state_read_request_tag(self):
         v = ApiaryValidator()
-        pass
+        state = _state_read_request_tag
+        self._test_read_line(line=' ',
+                             state=state,
+                             validator=v,
+                             expected_state=_state_read_request_tag)
 
     def test_read_line_state_read_request_with_valid_request_content(self):
         v = ApiaryValidator()
@@ -196,7 +200,11 @@ class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
     def test_read_line_state_read_response_tag(self):
         v = ApiaryValidator()
-        pass
+        state = _state_read_response_tag
+        self._test_read_line(line=' ',
+                             state=state,
+                             validator=v,
+                             expected_state=_state_read_response_tag)
 
     def test_read_line_state_read_response_tag_with_valid_response_content(self):
         v = ApiaryValidator()
