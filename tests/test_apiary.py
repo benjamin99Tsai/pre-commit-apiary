@@ -15,6 +15,8 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
+DEBUG=False
+
 _TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
 _TEST_API_METHOD_TEMPLATE = '### api action [%s]'
@@ -228,13 +230,15 @@ class ApiaryTest(TestCase):
         self._test_read_line(line=_TEST_API_TITLE,
                              state=state,
                              validator=v,
-                             expected_state=_state_read_api_title)
+                             expected_state=_state_read_api_title,
+                             load_content=True)
 
         for method in ['GET', 'POST', 'PUT', 'DELETE']:
             self._test_read_line(line=_TEST_API_METHOD_TEMPLATE % method,
                                  state=state,
                                  validator=v,
-                                 expected_state=_state_read_api_method)
+                                 expected_state=_state_read_api_method,
+                                 load_content=True)
 
     def test_read_line_state_read_response_tag_with_valid_response_content(self):
         v = ApiaryValidator()
@@ -294,8 +298,18 @@ class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for testing:
     # ------------------------------------------------------------------------------------------------------------------
-    def _test_read_line(self, line, validator, state, expected_state=None, expected_error=None):
+    def _test_read_line(self, line, validator, state, expected_state=None, expected_error=None, load_content=False):
         validator.state = state
+        # handle the test case when need to load the response/request content before testing:
+        if load_content and (state == _state_read_response_tag or state == _state_read_request_tag):
+            if state == _state_read_response_tag:
+                sub_path = 'response'
+            else:
+                sub_path = 'request'
+
+            content_file = path.join(_current_file_path, sub_path, '%s_good_example001.json' % sub_path)
+            ApiaryTest._load_content_to_validator(validator, content_file)
+
         valid, error = validator._read_line(line)
         if expected_error is None:
             self.assertTrue(valid)
@@ -308,7 +322,8 @@ class ApiaryTest(TestCase):
             self.assertEqual(error.type, expected_error.type)
 
     def _test_with_request_content(self, validator, content_file, expected_error_line_count=None):
-        print('\nTest with request from: %s' % content_file)
+        if DEBUG:
+            print('\nTest with request from: %s' % content_file)
         validator.state = _state_read_request_tag
         with open(content_file, 'r') as f:
             lines = f.readlines()
@@ -317,7 +332,8 @@ class ApiaryTest(TestCase):
 
     def _test_with_response_content(self, validator, content_file, expected_error_line_count=None):
         validator.state = _state_read_response_tag
-        print('\nTest with response from: %s' % content_file)
+        if DEBUG:
+            print('\nTest with response from: %s' % content_file)
         with open(content_file, 'r') as f:
             lines = f.readlines()
 
@@ -337,6 +353,15 @@ class ApiaryTest(TestCase):
                     print('error(@ line %d): %s' % (line_count, error))
                 self.assertTrue(valid)
                 self.assertEqual(error, None)
+
+    @staticmethod
+    def _load_content_to_validator(validator, content_file):
+        assert validator.decoder.get_parsed_objects() is None
+        with open(content_file, 'r') as f:
+            lines = f.readlines()
+        for line in lines:
+            validator.decoder.scan_line(line)
+
 
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for parsing the template for invalid request/response content:
