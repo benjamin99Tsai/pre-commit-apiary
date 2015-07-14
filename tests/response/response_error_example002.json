@@ -1,0 +1,7 @@
+{
+  "name": "Alice",    // [string]
+  "content": {
+    "message": "THE Message",
+    "number": 1232213
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Alice",    // [string]
+  "content": [
+    "Alice",
+    "Bob",
+    "Cindy"
+    }
+}

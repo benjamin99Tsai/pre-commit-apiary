@@ -1,6 +1,10 @@
 __author__ = 'admin'
 
+import re
+import json
 from unittest import TestCase
+from os import listdir
+from os import path
 from pre_commit_hook.apiary import ApiaryValidator
 from pre_commit_hook.apiary import _state_read_group_title
 from pre_commit_hook.apiary import _state_read_api_title
@@ -10,13 +14,17 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError
 
+_TEST_API_TITLE = '## test api [/test/api/pattern]'
+_TEST_API_METHOD_TEMPLATE = '### api action [%s]'
+_TEST_PARAMETER_TAG = '+ Parameters'
+_TEST_PARAMETER_STRING = '     + test  (number) ... descriptions'
+_TEST_REQUEST_TAG = '+ Request IssueOrders (application/json)'
+_TEST_RESPONSE_TAG = '+ Response 200 (application/json)'
+_TEST_TYPE_REQUEST_CONTENT = 0
+_TEST_TYPE_RESPONSE_CONTENT = 1
 
-_TEST_API_TITLE             = '## test api [/test/api/pattern]'
-_TEST_API_METHOD_TEMPLATE   = '### api action [%s]'
-_TEST_PARAMETER_TAG         = '+ Parameters'
-_TEST_PARAMETER_STRING      = '     + test  (number) ... descriptions'
-_TEST_REQUEST_TAG           = '+ Request IssueOrders (application/json)'
-_TEST_RESPONSE_TAG          = '+ Response 200 (application/json)'
+_current_file_path = path.dirname(path.abspath(__file__))
+
 
 class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
@@ -165,17 +173,49 @@ class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
     def test_read_line_state_read_request_tag(self):
         v = ApiaryValidator()
-        state = _state_read_request_tag
+        pass
+
+    def test_read_line_state_read_request_with_valid_request_content(self):
+        v = ApiaryValidator()
+        request_path = '%s/request/' % _current_file_path
+        files = [f for f in listdir(request_path) if path.isfile(path.join(request_path, f))]
+        for f in files:
+            if re.match(r'request_good_(.+).json', f):
+                content_file = path.join(request_path, f)
+                self._test_with_request_content(validator=v, content_file=content_file)
+
+    def test_read_line_state_read_request_with_invalid_request_content(self):
+        v = ApiaryValidator()
+        request_path = '%s/request/' % _current_file_path
+        self._test_invalid_template(validator=v,
+                                    template=path.join(request_path, 'request_template.json'),
+                                    test_type=_TEST_TYPE_REQUEST_CONTENT)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Test Case: read_response_tag
     # ------------------------------------------------------------------------------------------------------------------
     def test_read_line_state_read_response_tag(self):
         v = ApiaryValidator()
-        state = _state_read_response_tag
+        pass
+
+    def test_read_line_state_read_response_tag_with_valid_response_content(self):
+        v = ApiaryValidator()
+        responses_path = '%s/response/' % _current_file_path
+        files = [f for f in listdir(responses_path) if path.isfile(path.join(responses_path, f))]
+        for f in files:
+            if re.match(r'response_good_(.+)\.json', f):
+                content_file = path.join(responses_path, f)
+                self._test_with_response_content(validator=v, content_file=content_file)
+
+    def test_read_line_state_read_response_tag_with_invalid_response_content(self):
+        v = ApiaryValidator()
+        response_path = '%s/response/' % _current_file_path
+        self._test_invalid_template(validator=v,
+                                    template=path.join(response_path, 'response_template.json'),
+                                    test_type=_TEST_TYPE_RESPONSE_CONTENT)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Utilities:
+    # Utilities for testing:
     # ------------------------------------------------------------------------------------------------------------------
     def _test_read_line(self, line, validator, state, expected_state=None, expected_error=None):
         validator.state = state
@@ -190,32 +230,56 @@ class ApiaryTest(TestCase):
             self.assertTrue(isinstance(error, ApiaryError))
             self.assertEqual(error.type, expected_error.type)
 
-    def _test_with_request_content(self, validator, content_file, expected_error_line_counts=list()):
+    def _test_with_request_content(self, validator, content_file, expected_error_line_count=None):
         print('\nTest with request from: %s' % content_file)
         validator.state = _state_read_request_tag
         with open(content_file, 'r') as f:
             lines = f.readlines()
 
-        self._test_with_lines_of_content(validator, lines, expected_error_line_counts)
+        self._test_with_lines_of_content(validator, lines, expected_error_line_count)
 
-    def _test_with_response_content(self, validator, content_file, expected_error_line_counts=list()):
+    def _test_with_response_content(self, validator, content_file, expected_error_line_count=None):
         validator.state = _state_read_response_tag
         print('\nTest with response from: %s' % content_file)
         with open(content_file, 'r') as f:
             lines = f.readlines()
 
-        self._test_with_lines_of_content(validator, lines, expected_error_line_counts)
+        self._test_with_lines_of_content(validator, lines, expected_error_line_count)
 
-    def _test_with_lines_of_content(self, validator, lines, expected_error_line_counts):
+    def _test_with_lines_of_content(self, validator, lines, expected_error_line_count):
         line_count = 0
         for line in lines:
             line_count += 1
             valid, error = validator._read_line(line)
-            if line_count in expected_error_line_counts:
+            if line_count == expected_error_line_count:
                 self.assertFalse(valid)
                 self.assertEqual(error.type, ApiarySyntaxError().type)
+                break
             else:
                 if error:
-                    print('error(@ line %d): %s' % (line_count,error))
+                    print('error(@ line %d): %s' % (line_count, error))
                 self.assertTrue(valid)
                 self.assertEqual(error, None)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Utilities for parsing the template for invalid request/response content:
+    # ------------------------------------------------------------------------------------------------------------------
+    def _test_invalid_template(self, validator, template, test_type):
+        assert test_type in [_TEST_TYPE_REQUEST_CONTENT, _TEST_TYPE_RESPONSE_CONTENT]
+        assert isinstance(template, str), 'the template should be a string indicates the file path'
+        with open(template, 'r') as f:
+            lines = f.readlines()
+
+        current_file_path = path.dirname(path.abspath(__file__))
+        if test_type == _TEST_TYPE_REQUEST_CONTENT:
+            test_function = self._test_with_request_content
+            test_path = '%s/request/' % current_file_path
+        else:
+            test_function = self._test_with_response_content
+            test_path = '%s/response/' % current_file_path
+
+        test_cases = json.loads(''.join(lines))
+        for case in test_cases.get('content'):
+            test_function(validator=validator,
+                          content_file=path.join(test_path, case.get('filename')),
+                          expected_error_line_count=case.get('error_line_count'))
