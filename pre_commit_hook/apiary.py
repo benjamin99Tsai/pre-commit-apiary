@@ -34,7 +34,7 @@ class ApiaryValidator:
         self._read_parameter_string = False
         self._parameters = list()
 
-    def validate_file(self, file):
+    def validate_file(self, file, verbose=False):
         validation_result = True
         assert isinstance(file, str)
         try:
@@ -49,6 +49,8 @@ class ApiaryValidator:
         line_count = 0
         for line in lines:
             line_count += 1
+            if verbose:
+                print('%d %s' % (line_count, line))
             valid, error = self._read_line(line)
             if not valid:
                 print('ValError: %s (@ %d)' % (error.message, line_count))
@@ -155,6 +157,14 @@ class ApiaryValidator:
                 else:
                     self.decoder.clear()
                     self.state = _state_read_api_title
+
+            elif _api_method(line):
+                if not self.decoder.get_parsed_objects():
+                    error = ApiarySyntaxError(message='Missing response content')
+                    self.state = _state_error
+                else:
+                    self.decoder.clear()
+                    self.state = _state_read_api_method
 
             else:
                 error = self._scan_line_by_decoder(line)
