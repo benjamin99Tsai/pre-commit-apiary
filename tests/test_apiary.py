@@ -142,6 +142,7 @@ class ApiaryTest(TestCase):
     # ------------------------------------------------------------------------------------------------------------------
     def test_read_line_state_read_param_tag(self):
         v = ApiaryValidator()
+        v._parameters = ['test']
         state = _state_read_param_tag
         self._test_read_line(line=' ',
                              state=state,
@@ -231,7 +232,22 @@ class ApiaryTest(TestCase):
         results  = ApiaryValidator._get_parameters_from_api_title(test_title)
         self.assertEqual(results, expected)
 
-    def test_parameter(self):
+    def test_get_parameter_from_parameter_string(self):
+        expected = 'parameter_Name-000123'
+        test_string = ' + %s     (number) ... Some descriptions' % expected
+        result = ApiaryValidator._get_parameter_from_parameter_string(test_string)
+        self.assertEqual(result, expected)
+
+    def test_read_api_title_with_parameters(self):
+        v = ApiaryValidator()
+        test_title = '## TEST API [/test/api/pattern/{param_1}/with/{param_2}/{?p1,p2,p3}]'
+        v.state = _state_read_group_title
+        v._read_line(test_title)
+        expected = ['param_1', 'param_2', 'p1', 'p2', 'p3']
+        results = v._parameters
+        self.assertEqual(results, expected)
+
+    def test_check_if_parameter_is_defined(self):
         v = ApiaryValidator()
         v.state = _state_read_param_tag
         v._parameters = ['p1', 'p2', 'p3']
@@ -244,7 +260,7 @@ class ApiaryTest(TestCase):
 
         valid, error = v._read_line('+ p4 (string) ... test parameter 3')
         self.assertFalse(valid)
-        self.assertEqual(error, ApiaryParameterNotDefinedError())
+        self.assertEqual(error.type, ApiaryParameterNotDefinedError(parameter='p4').type)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for testing:
