@@ -102,6 +102,10 @@ class ApiBaseObject(object):
         return self._base_element == other._base_element
 
     @abstractmethod
+    def __len__(self):
+        pass
+
+    @abstractmethod
     def append_child(self, child, key=None):
         pass
 
@@ -154,6 +158,9 @@ class ApiDictionaryObject(ApiBaseObject):
     def __getitem__(self, key):
         assert isinstance(key, str), "The key should be a string instead of type: %s." % type(key)
         return self._base_element.get(key, None)
+
+    def __len__(self):
+        return len(self._base_element)
 
 class ApiArrayObject(ApiBaseObject):
     """
@@ -209,6 +216,9 @@ class ApiArrayObject(ApiBaseObject):
         assert isinstance(index, int), "The index should be an int instead of type: %s" % type(index)
         assert (not index < 0) and (index < len(self._base_element)), "Index range out of bound"
         return self._base_element[index]
+
+    def __len__(self):
+        return len(self._base_element)
 
 # ----------------------------------------------------------------------------------------------------------------------
 #  The Decoder:
@@ -415,7 +425,7 @@ class ApiDecoder(object):
 
             elif next_chart == "]":
                 if not isinstance(self._get_current_object(), ApiArrayObject):
-                    raise ApiParsingException(message='expected to be an array obejct with line: %s' % line)
+                    raise ApiParsingException(message='expected to be an array object with line: %s' % line)
                 self._pop_and_save_object()
 
             elif next_chart == "\"":
@@ -485,14 +495,22 @@ class ApiDecoder(object):
         else:
             self._buffered_element = element
 
-    def _append_buffered_element_to_current_object(self, append_with_comma=False):
+    def _append_buffered_element_to_current_object(self,
+                                                   append_with_comma=False,
+                                                   append_before_saving_the_container=False):
         if self._buffered_element is None:
-            # Do nothing if no buffered element needed to be appended
+            if append_with_comma:
+                self._last_content_been_appended_with_comma = append_with_comma
             return
 
-        self._last_content_been_appended_with_comma = append_with_comma
         current_object = self._get_current_object()
         assert current_object is not None
+        if not append_before_saving_the_container \
+                and not self._last_content_been_appended_with_comma \
+                and len(current_object):
+            raise ApiParsingException(message='The previous element should ended with comma')
+
+        self._last_content_been_appended_with_comma = append_with_comma
         if isinstance(self._buffered_element, dict):
             if not isinstance(current_object, ApiDictionaryObject):
                 raise ApiParsingException(message='the object type and the current element(s) does not match')
@@ -550,7 +568,7 @@ class ApiDecoder(object):
         if self._last_content_been_appended_with_comma:
             raise ApiParsingException(message='The last element in the container should not end with comma')
 
-        self._append_buffered_element_to_current_object()
+        self._append_buffered_element_to_current_object(append_before_saving_the_container=True)
         content_object   = self._object_stacks.pop(-1)
         container_object = self._get_current_object()
         if container_object is not None:
@@ -573,5 +591,18 @@ class ApiDecoder(object):
 
 if __name__ == "__main__":
     # Running the doctest:
-    import doctest
-    doctest.testmod()
+    # import doctest
+    # doctest.testmod()
+
+    from os import path
+    my_path = path.dirname(path.abspath(__file__))
+    with open('%s/../tests/response/response_error_example005.json' % my_path, 'r') as file:
+        lines = file.readlines()
+
+    decoder = ApiDecoder()
+    line_count = 0
+    for line in lines:
+        line_count += 1
+        print('%d %s' % (line_count, line))
+        decoder.scan_line(line)
+    print('\nResults: \n%s' % decoder.get_parsed_objects())

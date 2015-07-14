@@ -247,6 +247,9 @@ class ApiContentArrayElement(ApiContentSetElement):
         super(ApiContentArrayElement, self).__init__(ApiContentElement.Type.array)
         self.content = list()
 
+    def __len__(self):
+        return len(self.content)
+
     def __eq__(self, other):
         if self.type != other.type:
             return False
@@ -349,6 +352,9 @@ class ApiContentDictionaryElement(ApiContentSetElement):
     def __init__(self):
         super(ApiContentDictionaryElement, self).__init__(ApiContentElement.Type.dictionary)
         self.content = dict()
+
+    def __len__(self):
+        return len(self.content)
 
     def __eq__(self, other):
         # validate if the types are the same:
