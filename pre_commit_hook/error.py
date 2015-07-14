@@ -16,3 +16,9 @@ class ApiarySyntaxError(ApiaryError):
         self.message = message
         self.type = 'SyntaxError'
 
+class ApiaryParameterNotDefinedError(ApiaryError):
+
+    def __init__(self, parameter=None):
+        assert isinstance(parameter, str), 'Type error with parameter: %s' % parameter
+        self.message = 'Unknown parameter: %s' % parameter
+        self.type = 'ParameterNotDefinedError'
