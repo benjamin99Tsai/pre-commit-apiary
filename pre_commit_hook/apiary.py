@@ -199,9 +199,9 @@ class ApiaryValidator:
         assert url_search is not None, 'Cannot find the url content in the title %s' % title
         parameters = list()
         url_elements = url_search.group()[1:-1].split('/')
-        param_match = re.compile(r'^\{.+\}$').match
+        param_search = re.compile(r'\{.+\}').search
         for element in url_elements:
-            match = param_match(element)
+            match = param_search(element)
             if match:
                 content = match.group()
                 if content[1] == '?':
