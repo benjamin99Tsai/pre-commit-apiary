@@ -6,7 +6,7 @@
       "required": true        // [boolean]
     },
     ...
-  ]
+  ],
   "limit": 10,                // [number]
   "total": 5,                 // [number]
   "offset": 0                 // [number, optional]

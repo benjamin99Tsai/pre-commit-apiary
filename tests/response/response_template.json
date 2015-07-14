@@ -11,6 +11,15 @@
     {
       "error_line_count": 7,
       "filename": "response_error_example003.json"
+    },
+    {
+      "error_line_count": 4,
+      "filename": "response_error_example004.json"
+    },
+    {
+      "error_line_count": 6,
+      "filename": "response_error_example005.json"
     }
+
   ]
 }
