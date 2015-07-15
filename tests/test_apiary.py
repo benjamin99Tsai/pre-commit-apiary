@@ -319,6 +319,7 @@ class ApiaryTest(TestCase):
             for state in [_state_read_response_tag, _state_read_request_tag]:
                 v.decoder.clear()
                 v.state = state
+                v._read_newline = False
                 v._read_line(newline)
                 valid, error = v._read_line('        {')
                 if error and DEBUG:
@@ -330,6 +331,7 @@ class ApiaryTest(TestCase):
         for state in [_state_read_request_tag, _state_read_request_tag]:
             v.decoder.clear()
             v.state = state
+            v._read_newline = False
             valid, error = v._read_line('        {')
             self.assertFalse(valid)
             self.assertEqual(error.type, ApiarySyntaxError().type)
@@ -417,6 +419,10 @@ class ApiaryTest(TestCase):
 
     def _test_with_lines_of_content(self, validator, lines, expected_error_line_count):
         line_count = 0
+
+        # add a newline before the code block
+        validator._read_line(' ')
+
         for line in lines:
             line_count += 1
             line = '        %s' % line
