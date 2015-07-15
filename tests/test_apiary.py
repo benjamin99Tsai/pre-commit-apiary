@@ -5,6 +5,7 @@ import json
 from unittest import TestCase
 from os import listdir
 from os import path
+from pre_commit_hook.decoder import ApiDecoder
 from pre_commit_hook.apiary import ApiaryValidator
 from pre_commit_hook.apiary import _state_init
 from pre_commit_hook.apiary import _state_read_group_title
@@ -15,7 +16,7 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
-DEBUG=False
+DEBUG=True
 
 _TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
@@ -337,15 +338,17 @@ class ApiaryTest(TestCase):
         if DEBUG:
             print('\nTest with request from: %s' % content_file)
         validator.state = _state_read_request_tag
+        validator.decoder = ApiDecoder()
         with open(content_file, 'r') as f:
             lines = f.readlines()
 
         self._test_with_lines_of_content(validator, lines, expected_error_line_count)
 
     def _test_with_response_content(self, validator, content_file, expected_error_line_count=None):
-        validator.state = _state_read_response_tag
         if DEBUG:
             print('\nTest with response from: %s' % content_file)
+        validator.state = _state_read_response_tag
+        validator.decoder = ApiDecoder()
         with open(content_file, 'r') as f:
             lines = f.readlines()
 
