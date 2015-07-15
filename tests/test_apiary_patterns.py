@@ -46,7 +46,7 @@ class ApiaryPatternsTest(TestCase):
                          '[/test/api/url/pattern/{parameter1}/and/{')
 
         self.assertEqual(_api_url('test [/test/api/url/pattern/{parameter1}/and/{parameter2}{?test}').group(),
-                         '[/test/api/url/pattern/{parameter1}/and/{')
+                         '[/test/api/url/pattern/{parameter1}/and/{parameter2}{')
 
     def test_param_title(self):
         self.assertTrue(_param_title('+ Parameters'))
