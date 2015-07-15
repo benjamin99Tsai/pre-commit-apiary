@@ -11,7 +11,7 @@ _api_title      = re.compile(r'^##(\s)+.*\[\/.+\]$').match
 _api_url        = re.compile(r'\[\/[a-zA-Z0-9\ \_\-\/\{/}]*[\{\]]').search
 _api_method     = re.compile(r'\[(GET|POST|PUT|DELETE|PATCH)\]').search
 _param_title    = re.compile(r'^\+ Parameters').match
-_param_string   = re.compile(r'^\s*\+\s*[a-zA-Z0-9\_\-]+\s*\([a-zA-Z\_\-0-9]+\)\s*[(\.){3}]?.*').match
+_param_string   = re.compile(r'^\s*\+\s*[a-zA-Z0-9\_\-]+\s*\([a-zA-Z\_\-0-9\,\ ]+\)\s*[(\.){3}]?.*').match
 _request_title  = re.compile(r'^\+ Request .+').search
 _response_title = re.compile(r'^\+ Response').match
 
