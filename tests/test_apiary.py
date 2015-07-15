@@ -315,7 +315,8 @@ class ApiaryTest(TestCase):
         pass
 
     def test_indent_validation(self):
-        self.assertTrue(ApiaryValidator._indent_validation('  '))
+        self.assertTrue(ApiaryValidator._indent_validation('\r'))
+        self.assertTrue(ApiaryValidator._indent_validation('   '))
         self.assertTrue(ApiaryValidator._indent_validation('        test example 001'))
         self.assertTrue(ApiaryValidator._indent_validation('\t\ttest example 002'))
         self.assertFalse(ApiaryValidator._indent_validation('test example 003'))
