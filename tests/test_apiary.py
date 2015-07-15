@@ -309,7 +309,7 @@ class ApiaryTest(TestCase):
         self.assertEqual(error.type, ApiaryParameterNotDefinedError(parameter='p4').type)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # TestCase: code block preformats related
+    # TestCase: code block pre-formats related
     # ------------------------------------------------------------------------------------------------------------------
     def test_for_check_code_block_newline(self):
         pass
