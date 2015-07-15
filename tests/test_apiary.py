@@ -16,7 +16,7 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
-DEBUG=True
+DEBUG=False
 
 _TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
@@ -339,6 +339,9 @@ class ApiaryTest(TestCase):
 
         valid, error = validator._read_line(line)
         if expected_error is None:
+            if not valid and DEBUG:
+                print('\nUnexpected Error: %s' % error)
+
             self.assertTrue(valid)
             if expected_state is not None:
                 self.assertEqual(validator.state, expected_state)
