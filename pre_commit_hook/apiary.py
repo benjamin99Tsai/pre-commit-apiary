@@ -6,24 +6,25 @@ from pre_commit_hook.decoder import ApiDecoder as ContentDecoder
 from pre_commit_hook.error import ApiarySyntaxError, ApiaryParameterNotDefinedError
 
 # Define the pattern match/search
-_group_title    = re.compile(r'^#(\s)+.*').match
-_api_title      = re.compile(r'^##(\s)+.*\[\/.+\]$').match
-_api_url        = re.compile(r'\[\/[a-zA-Z0-9\ \_\-\/\{/}]*[\{\]]').search
-_api_method     = re.compile(r'\[(GET|POST|PUT|DELETE|PATCH)\]').search
-_param_title    = re.compile(r'^\+ Parameters').match
-_param_string   = re.compile(r'^\s*\+\s*[a-zA-Z0-9\_\-]+\s*\([a-zA-Z\_\-0-9\,\ ]+\)\s*[(\.){3}]?.*').match
-_request_title  = re.compile(r'^\+ Request .+').search
+_group_title = re.compile(r'^#(\s)+.*').match
+_api_title = re.compile(r'^##(\s)+.*\[\/.+\]$').match
+_api_url = re.compile(r'\[\/[a-zA-Z0-9\ \_\-\/\{/}]*[\{\]]').search
+_api_method = re.compile(r'\[(GET|POST|PUT|DELETE|PATCH)\]').search
+_param_title = re.compile(r'^\+ Parameters').match
+_param_string = re.compile(r'^\s*\+\s*[a-zA-Z0-9\_\-]+\s*\([a-zA-Z\_\-0-9\,\ ]+\)\s*[(\.){3}]?.*').match
+_request_title = re.compile(r'^\+ Request .+').search
 _response_title = re.compile(r'^\+ Response').match
 
 # Define the static states for validation process:
-_state_init                 = 0
-_state_read_group_title     = 1
-_state_read_api_title       = 2
-_state_read_api_method      = 3
-_state_read_param_tag       = 4
-_state_read_request_tag     = 5
-_state_read_response_tag    = 6
-_state_error                = -1
+_state_init = 0
+_state_read_group_title = 1
+_state_read_api_title = 2
+_state_read_api_method = 3
+_state_read_param_tag = 4
+_state_read_request_tag = 5
+_state_read_response_tag = 6
+_state_error = -1
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # define the Validator class
@@ -170,13 +171,18 @@ class ApiaryValidator:
             else:
                 error = self._scan_line_by_decoder(line)
 
-        else:   # _state_init
+        else:  # _state_init
             if _group_title(line):
                 self.state = _state_read_group_title
 
         return (error is None), error
 
     def _scan_line_by_decoder(self, line):
+        if not ApiaryValidator._indent_validation(line):
+            self.state = _state_error
+            return ApiarySyntaxError(
+                message='SyntaxError: each line in the code block should be indented by 8 spaces ot 2 tabs')
+
         assert self.decoder is not None
         assert isinstance(line, str)
         error = None
@@ -222,7 +228,7 @@ class ApiaryValidator:
 
     @staticmethod
     def _get_parameter_from_parameter_string(parameter_string):
-        space  = ' \t'
+        space = ' \t'
         accepted_characters = string.ascii_letters + string.digits + '_-'
         buffer = None
         for chart in parameter_string:
@@ -234,3 +240,16 @@ class ApiaryValidator:
                 else:
                     buffer = chart
         return buffer
+
+    @staticmethod
+    def _indent_validation(line):
+        space_count = 0
+        for chart in line:
+            if chart == ' ':
+                space_count += 1
+            elif chart == '\t':
+                space_count += 4
+            else:
+                break
+
+        return (not space_count < 8) or (len(line) == space_count)
