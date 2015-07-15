@@ -33,6 +33,7 @@ class ApiaryValidator:
         self.state = _state_init
         self.decoder = ContentDecoder()
         self._read_parameter_string = False
+        self._read_newline = False
         self._parameters = list()
 
     def validate_file(self, file, verbose=False):
@@ -93,10 +94,12 @@ class ApiaryValidator:
 
             elif _request_title(line):
                 self.decoder.clear()
+                self._read_newline = False
                 self.state = _state_read_request_tag
 
             elif _response_title(line):
                 self.decoder.clear()
+                self._read_newline = False
                 self.state = _state_read_response_tag
 
             elif _param_string(line):
@@ -117,6 +120,7 @@ class ApiaryValidator:
                     self.state = _state_error
                 else:
                     self.decoder.clear()
+                    self._read_newline = False
                     self.state = _state_read_request_tag
 
             elif _response_title(line):
@@ -125,6 +129,7 @@ class ApiaryValidator:
                     self.state = _state_error
                 else:
                     self.decoder.clear()
+                    self._read_newline = False
                     self.state = _state_read_response_tag
 
             elif not re.match(r'\s+', line):
@@ -138,6 +143,7 @@ class ApiaryValidator:
                     self.state = _state_error
                 else:
                     self.decoder.clear()
+                    self._read_newline = False
                     self.state = _state_read_response_tag
             else:
                 error = self._scan_line_by_decoder(line)
@@ -149,6 +155,7 @@ class ApiaryValidator:
                     self.state = _state_error
                 else:
                     self.decoder.clear()
+                    self._read_newline = False
                     self.state = _state_read_group_title
 
             elif _api_title(line):
@@ -178,14 +185,26 @@ class ApiaryValidator:
         return (error is None), error
 
     def _scan_line_by_decoder(self, line):
+        assert self.decoder is not None
+        assert isinstance(line, str)
+        error = None
+
+        # validation for the newline constrain:
+        if not self._read_newline:
+            if re.match(r'^\s*[\r\n]?$', line):
+                self._read_newline = True
+                error = None
+            else:
+                error = ApiarySyntaxError(message='SyntaxError: the code block should be started with a newline')
+            return error
+
+        # validation for the indent constrain:
         if not ApiaryValidator._indent_validation(line):
             self.state = _state_error
             return ApiarySyntaxError(
                 message='SyntaxError: each line in the code block should be indented by 8 spaces ot 2 tabs')
 
-        assert self.decoder is not None
-        assert isinstance(line, str)
-        error = None
+        # scan line with the decoder:
         try:
             self.decoder.scan_line(line)
 
@@ -252,4 +271,4 @@ class ApiaryValidator:
             else:
                 break
 
-        return (not space_count < 8) or re.match(r'^\s+(\r\n)*$', line)
+        return (not space_count < 8) or re.match(r'^\s*[\r\n]?$', line)
