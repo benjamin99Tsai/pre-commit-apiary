@@ -16,7 +16,7 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
-DEBUG=False
+DEBUG=True
 
 _TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'
@@ -312,7 +312,27 @@ class ApiaryTest(TestCase):
     # TestCase: code block pre-formats related
     # ------------------------------------------------------------------------------------------------------------------
     def test_for_check_code_block_newline(self):
-        pass
+        v = ApiaryValidator()
+        # valid cases:
+        newline_examples = [' ', '\n', '\r', '   \n', '     \r']
+        for newline in newline_examples:
+            for state in [_state_read_response_tag, _state_read_request_tag]:
+                v.decoder.clear()
+                v.state = state
+                v._read_line(newline)
+                valid, error = v._read_line('        {')
+                if error and DEBUG:
+                    print('\nUnexpected Error: %s' % error)
+                self.assertTrue(valid)
+                self.assertIsNone(error)
+
+        # invalid cases:
+        for state in [_state_read_request_tag, _state_read_request_tag]:
+            v.decoder.clear()
+            v.state = state
+            valid, error = v._read_line('        {')
+            self.assertFalse(valid)
+            self.assertEqual(error.type, ApiarySyntaxError().type)
 
     def test_indent_validation(self):
         self.assertTrue(ApiaryValidator._indent_validation('\r'))
