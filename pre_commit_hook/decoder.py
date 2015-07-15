@@ -92,6 +92,7 @@ class ApiBaseObject(object):
     _BASE_CLS = object
 
     def __init__(self):
+        self.previous_element_append_with_comma = False
         self._base_element = self.__class__._BASE_CLS()
         self._key = None
         self._duplication_reference = None
@@ -256,7 +257,6 @@ class ApiDecoder(object):
         self._parsed_objects       = None      # The parsed result(s)
         self._buffered_element     = None
         self._line_scanned_comment = None
-        self._last_content_been_appended_with_comma = False
 
     # Comment Related: -------------------------------------------------------------------------------------------------
     def _get_comment_string(self, line):
@@ -470,7 +470,7 @@ class ApiDecoder(object):
                 if not buffer == '...':
                     raise ApiParsingException(message='could not recognize the syntax: %s' % buffer)
                 index += 3
-                self._last_content_been_appended_with_comma = False
+                self._get_current_object().previous_element_append_with_comma = False
                 continue
 
             elif next_chart == ",":
@@ -500,17 +500,17 @@ class ApiDecoder(object):
                                                    append_before_saving_the_container=False):
         if self._buffered_element is None:
             if append_with_comma:
-                self._last_content_been_appended_with_comma = append_with_comma
+                self._get_current_object().previous_element_append_with_comma = append_with_comma
             return
 
         current_object = self._get_current_object()
         assert current_object is not None
         if not append_before_saving_the_container \
-                and not self._last_content_been_appended_with_comma \
+                and not self._get_current_object().previous_element_append_with_comma \
                 and len(current_object):
             raise ApiParsingException(message='The previous element should ended with comma')
 
-        self._last_content_been_appended_with_comma = append_with_comma
+        self._get_current_object().previous_element_append_with_comma = append_with_comma
         if isinstance(self._buffered_element, dict):
             if not isinstance(current_object, ApiDictionaryObject):
                 raise ApiParsingException(message='the object type and the current element(s) does not match')
@@ -565,13 +565,17 @@ class ApiDecoder(object):
         self._object_stacks.append(new_object)
 
     def _pop_and_save_object(self):
-        if self._last_content_been_appended_with_comma:
+        if self._get_current_object().previous_element_append_with_comma:
             raise ApiParsingException(message='The last element in the container should not end with comma')
 
         self._append_buffered_element_to_current_object(append_before_saving_the_container=True)
         content_object   = self._object_stacks.pop(-1)
         container_object = self._get_current_object()
         if container_object is not None:
+            if len(container_object) and not container_object.previous_element_append_with_comma:
+                raise ApiParsingException(message='The previous element in the container should ended with comma')
+
+            container_object.previous_element_append_with_comma = False
             if isinstance(container_object, ApiDictionaryObject):
                 assert content_object.get_key() is not None
                 container_object.append_child(content_object.get_base_element(), content_object.get_key())
