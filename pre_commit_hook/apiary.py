@@ -252,4 +252,4 @@ class ApiaryValidator:
             else:
                 break
 
-        return (not space_count < 8) or (len(line) == space_count)
+        return (not space_count < 8) or re.match(r'^\s+(\r\n)*$', line)
