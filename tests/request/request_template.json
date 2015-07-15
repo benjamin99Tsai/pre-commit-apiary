@@ -19,6 +19,10 @@
     {
       "error_line_count": 6,
       "filename": "request_error_example005.json"
+    },
+    {
+      "error_line_count": 9,
+      "filename": "request_error_example006.json"
     }
   ]
 }

@@ -1,0 +1,11 @@
+{
+    "doctor": {
+        "name": "DOCTOR_NAME",
+        "empNo": "000001"
+    }
+    "np": {
+        "name": "NP",
+        "empNo": "100002"
+    },
+    "test": true
+}
