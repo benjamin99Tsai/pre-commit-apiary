@@ -315,6 +315,7 @@ class ApiaryTest(TestCase):
         pass
 
     def test_indent_validation(self):
+        self.assertTrue(ApiaryValidator._indent_validation('  '))
         self.assertTrue(ApiaryValidator._indent_validation('        test example 001'))
         self.assertTrue(ApiaryValidator._indent_validation('\t\ttest example 002'))
         self.assertFalse(ApiaryValidator._indent_validation('test example 003'))
@@ -371,6 +372,7 @@ class ApiaryTest(TestCase):
         line_count = 0
         for line in lines:
             line_count += 1
+            line = '        %s' % line
             valid, error = validator._read_line(line)
             if line_count == expected_error_line_count:
                 self.assertFalse(valid)
@@ -388,7 +390,7 @@ class ApiaryTest(TestCase):
         with open(content_file, 'r') as f:
             lines = f.readlines()
         for line in lines:
-            validator.decoder.scan_line(line)
+            validator.decoder.scan_line('       %s' % line)
 
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for parsing the template for invalid request/response content:
