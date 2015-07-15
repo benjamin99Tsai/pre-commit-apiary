@@ -309,6 +309,19 @@ class ApiaryTest(TestCase):
         self.assertEqual(error.type, ApiaryParameterNotDefinedError(parameter='p4').type)
 
     # ------------------------------------------------------------------------------------------------------------------
+    # TestCase: code block preformats related
+    # ------------------------------------------------------------------------------------------------------------------
+    def test_for_check_code_block_newline(self):
+        pass
+
+    def test_indent_validation(self):
+        self.assertTrue(ApiaryValidator._indent_validation('        test example 001'))
+        self.assertTrue(ApiaryValidator._indent_validation('\t\ttest example 002'))
+        self.assertFalse(ApiaryValidator._indent_validation('test example 003'))
+        self.assertFalse(ApiaryValidator._indent_validation('  test example 004'))
+        self.assertFalse(ApiaryValidator._indent_validation('\ttest example 005'))
+
+    # ------------------------------------------------------------------------------------------------------------------
     # Utilities for testing:
     # ------------------------------------------------------------------------------------------------------------------
     def _test_read_line(self, line, validator, state, expected_state=None, expected_error=None, load_content=False):
