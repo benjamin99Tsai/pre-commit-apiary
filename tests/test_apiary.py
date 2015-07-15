@@ -322,6 +322,29 @@ class ApiaryTest(TestCase):
         self.assertFalse(ApiaryValidator._indent_validation('  test example 004'))
         self.assertFalse(ApiaryValidator._indent_validation('\ttest example 005'))
 
+    def test_read_line_with_indent_validation(self):
+        v = ApiaryValidator()
+        valid_examples   = [' ', '        {', '\t\t{']
+        invalid_examples = ['"test":123, ', '       "test": false, ']
+
+        for state in [_state_read_response_tag, _state_read_request_tag]:
+
+            for line in valid_examples:
+                v.state = state
+                v.decoder.clear()
+                valid, error = v._read_line(line)
+                if error and DEBUG:
+                    print('\nUnexpected Error: %s' % error)
+                self.assertTrue(valid)
+                self.assertEqual(error, None)
+
+            for line in invalid_examples:
+                v.state = state
+                v.decoder.clear()
+                valid, error = v._read_line(line)
+                self.assertFalse(valid)
+                self.assertEqual(error.type, ApiarySyntaxError().type)
+
     # ------------------------------------------------------------------------------------------------------------------
     # Utilities for testing:
     # ------------------------------------------------------------------------------------------------------------------
