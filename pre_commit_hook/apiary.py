@@ -93,14 +93,10 @@ class ApiaryValidator:
                 self.state = _state_read_param_tag
 
             elif _request_title(line):
-                self.decoder.clear()
-                self._read_newline = False
-                self.state = _state_read_request_tag
+                self._prepare_for_scanning_request_content()
 
             elif _response_title(line):
-                self.decoder.clear()
-                self._read_newline = False
-                self.state = _state_read_response_tag
+                self._prepare_for_scanning_response_content()
 
             elif _param_string(line):
                 error = ApiarySyntaxError(message='Missing parameter title')
@@ -119,18 +115,14 @@ class ApiaryValidator:
                     error = ApiarySyntaxError(message='Missing parameter info')
                     self.state = _state_error
                 else:
-                    self.decoder.clear()
-                    self._read_newline = False
-                    self.state = _state_read_request_tag
+                    self._prepare_for_scanning_request_content()
 
             elif _response_title(line):
                 if not self._read_parameter_string:
                     error = ApiarySyntaxError(message='Missing parameter info')
                     self.state = _state_error
                 else:
-                    self.decoder.clear()
-                    self._read_newline = False
-                    self.state = _state_read_response_tag
+                    self._prepare_for_scanning_response_content()
 
             elif not re.match(r'\s+', line):
                 error = ApiarySyntaxError(message='The lines should contain the parameter info')
@@ -142,9 +134,7 @@ class ApiaryValidator:
                     error = ApiarySyntaxError(message='Missing request content')
                     self.state = _state_error
                 else:
-                    self.decoder.clear()
-                    self._read_newline = False
-                    self.state = _state_read_response_tag
+                    self._prepare_for_scanning_response_content()
             else:
                 error = self._scan_line_by_decoder(line)
 
@@ -174,6 +164,20 @@ class ApiaryValidator:
                 else:
                     self.decoder.clear()
                     self.state = _state_read_api_method
+
+            elif _request_title(line):
+                if not self.decoder.get_parsed_objects():
+                    error = ApiarySyntaxError('Missing the request content')
+                    self.state = _state_error
+                else:
+                    self._prepare_for_scanning_request_content()
+
+            elif _response_title(line):
+                if not self.decoder.get_parsed_objects():
+                    error = ApiarySyntaxError('Missing the response content')
+                    self.state = _state_error
+                else:
+                    self._prepare_for_scanning_response_content()
 
             else:
                 error = self._scan_line_by_decoder(line)
@@ -217,6 +221,18 @@ class ApiaryValidator:
             self.state = _state_error
 
         return error
+
+    def _prepare_for_scanning_response_content(self):
+        self.state = _state_read_response_tag
+        self._prepare_for_scanning_code_block()
+
+    def _prepare_for_scanning_request_content(self):
+        self.state = _state_read_request_tag
+        self._prepare_for_scanning_code_block()
+
+    def _prepare_for_scanning_code_block(self):
+        self.decoder.clear()
+        self._read_newline = False
 
     @staticmethod
     def _get_parameters_from_api_title(title):
