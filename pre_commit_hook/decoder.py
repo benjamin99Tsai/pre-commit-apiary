@@ -572,7 +572,9 @@ class ApiDecoder(object):
         content_object   = self._object_stacks.pop(-1)
         container_object = self._get_current_object()
         if container_object is not None:
-            if len(container_object) and not container_object.previous_element_append_with_comma:
+            if len(container_object) \
+                    and not container_object.get_duplication_reference() \
+                    and not container_object.previous_element_append_with_comma:
                 raise ApiParsingException(message='The previous element in the container should ended with comma')
 
             container_object.previous_element_append_with_comma = False
