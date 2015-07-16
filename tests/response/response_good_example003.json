@@ -1,0 +1,92 @@
+        {
+            "content" : {
+                "field" : [    //欄位資訊
+                    {
+                        "fieldCode" : "item",
+                        "displayName" : "項目"
+                    }
+                ],
+                "data" : [
+                    {
+                        "content" : {   //依據欄位填入資料，無資料則不回傳 [optional]
+                            "item" : "置頂"                                         // [string]
+                        },
+                        "children" : [                                              //有次階層時回傳 [optional]
+                            {
+                                "content" : {   //依據欄位填入資料，無資料則不回傳 [optional]
+                                    "item" : "病歷首頁及摘要"                       // [string]
+                                },
+                                "report" : {    //如有報告則回傳 [optional]
+                                    "reportType" : "HTML",                          //報告型態，HTML或PDF [string]
+                                    "reportPath" : "/EMRReport/{EMRReportID}",      //報告路徑 [string]
+                                    "encoding" : "utf-16",                          //編碼 (utf-8 or utf-16，為utf-8時可不回傳) [string, optional]
+                                    "baseURL" : "http://baseUrl.ntuh.gov.tw"        //報告基礎連結(報告中如有相對連結時回傳) [string(url), optional]
+                                },
+                                "children" : [ // [optional, duplicate]
+                                    {
+                                        "content" : { //依據欄位填入資料，無資料則不回傳 [optional]
+                                            "item" : "PDF病歷首頁及摘要"            // [string]
+                                        },
+                                        "report" : { //如有報告則回傳 [optional]
+                                            "reportType" : "PDF",                       //報告型態，HTML或PDF [string]
+                                            "reportPath" : "/EMRReport/{EMRReportID}",  //報告路徑 [string]
+                                            "encoding" : "utf-16",                      //編碼 (utf-8 or utf-16，為utf-8時可不回傳) [string, optional]
+                                            "baseURL" : "http://baseUrl.ntuh.gov.tw"    //報告基礎連結(報告中如有相對連結時回傳) [string(url), optional]
+                                        }
+                                    },
+                                    ...
+                                ]
+                            },
+                            ...
+                        ]
+                    },
+                    {
+                        "content" : {  //依據欄位填入資料，無資料則不回傳 [optional]
+                            "item" : "住院"    // [string]
+                        },
+                        "children" : [  // [optional, duplicate]
+                            {
+                                "content" : {                       //依據欄位填入資料，無資料則不回傳 [optional]
+                                    "item" : "2014/06/25 外科部"    // [string]
+                                },
+                                "children" : [  // [optional, duplicate]
+                                    {
+                                        "content" : {               //依據欄位填入資料，無資料則不回傳 [optional]
+                                            "item" : "出院病摘"     // [string]
+                                        },
+                                        "report" : {    //如有報告則回傳 [optional]
+                                            "reportType" : "HTML",                      //報告型態，HTML或PDF
+                                            "reportPath" : "/EMRReport/{EMRReportID}",  //報告路徑 [string]
+                                            "encoding" : "utf-16",                      //編碼 (utf-8 or utf-16，為utf-8時可不回傳) [string, optional]
+                                            "baseURL" : "http://baseUrl.ntuh.gov.tw"    //報告基礎連結(報告中如有相對連結時回傳)[string(url), optional]
+                                        },
+                                        "children" : [ // [optional, duplicate]
+                                            {
+                                                "content" : {                                   //依據欄位填入資料，無資料則不回傳 [optional]
+                                                    "item" : "2014/06/25 葉小菜主治"            // [string]
+                                                },
+                                                "report" : { //如有報告則回傳 [optional]
+                                                    "reportType" : "PDF",                       //報告型態，HTML或PDF [string]
+                                                    "reportPath" : "/EMRReport/{EMRReportID}",  //報告路徑 [string]
+                                                    "encoding" : "utf-16",                      //編碼 (utf-8 or utf-16，為utf-8時可不回傳) [string, optional]
+                                                    "baseURL" : "http://baseUrl.ntuh.gov.tw"    //報告基礎連結(報告中如有相對連結時回傳)[string(url), optional]
+                                                }
+                                            },
+                                            ...
+                                        ]
+                                    },
+                                    ...
+                                ]
+                            },
+                            ...
+                        ]
+                    },
+                    ...
+                ],
+                "limit" : 50, //最大回傳筆數傳[number]
+                "offset" : 0, //回傳資料偏移數[number]
+                "total" : 100 //此次Query總筆數[number]
+            },
+            "startDate" : 1406938026,   // Query 起始日期，以時間序號表示 (包含此日期)
+            "endDate" : 1406938026      // Query 結束日期，以時間序號表示 (包含此日期)
+        }
