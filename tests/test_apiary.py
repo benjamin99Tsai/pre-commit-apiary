@@ -257,6 +257,21 @@ class ApiaryTest(TestCase):
                                     template=path.join(response_path, 'response_template.json'),
                                     test_type=_TEST_TYPE_RESPONSE_CONTENT)
 
+    def test_read_line_state_read_response_tag_with_consecutive_responses(self):
+        v = ApiaryValidator()
+        response_file = path.join(_current_file_path, 'response', 'response_good_example001.json')
+        # setup the validator
+        v.state = _state_read_response_tag
+        v._read_newline = True
+        self._load_content_to_validator(v, content_file=response_file)
+        # test with the 2nd response tag
+        valid, error = v._read_line(_TEST_RESPONSE_TAG)
+        if error and DEBUG:
+            print('\nUnexpected Error: %s' % error)
+        self.assertTrue(valid)
+        self.assertFalse(v._read_newline)
+        self.assertIsNone(error)
+
     # ------------------------------------------------------------------------------------------------------------------
     # Test Case: validate the parameter related issues
     # ------------------------------------------------------------------------------------------------------------------
