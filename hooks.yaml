@@ -3,4 +3,5 @@
   description: This hook will help to validate the apiary documents.
   entry: validate_apiary
   language: python
+  language_version: python3.4
   files: \.apib$
