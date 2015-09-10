@@ -579,7 +579,8 @@ class ApiDecoder(object):
 
             container_object.previous_element_append_with_comma = False
             if isinstance(container_object, ApiDictionaryObject):
-                assert content_object.get_key() is not None
+                if content_object.get_key() is None:
+                    raise ApiParsingException(message='Cannot find the key for the dictionary element')
                 container_object.append_child(content_object.get_base_element(), content_object.get_key())
             else:
                 assert content_object.get_key() is None
