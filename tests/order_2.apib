@@ -1,0 +1,868 @@
+# Group 開發中 Phase2 Order APIs
+
+## 7/21 - 科部清單 [/departments{?sessionKey,hospitalCode,patientClass,offset,limit}]
+### 取得科部清單 [GET]
+
++ Parameters
+    + sessionKey    (string) ... SessionKey
+    + hospitalCode  (string) ... 院區碼
+    + patientClass  (string) ... 病患門住急別
+    + offset        (number, optional) ... 設定回傳資料偏移數
+    + limit         (number, optional) ... 設定最大回傳筆數
+
++ Response 200 (application/json)
+
+        {
+            "content": [
+                {
+                    "title": "內科",                  // [string] 顯示的 title 名稱
+                    "code": "DEPT_001"               // [string] 科部對應的代碼
+                },
+                {
+                    "title": "外科",
+                    "code": "DEPT_002"
+                },
+                ...
+            ],
+            "total": 10,                // [number] 此次Query總筆數
+            "offset": 0,                // [number] 回傳資料偏移數
+            "limit": 100                // [number] 最大回傳筆數
+        }
+
+## 9/15 - 醫令介面常用清單 [/interface/order/dictionary/{dictionaryId}{?sessionKey,hospitalCode,patientClass,offset,limit}]
+### 取得 dictionaryId 所對應之常用清單 [GET]
+
++ Parameters
+    + sessionKey    (string) ... SessionKey
+    + hospitalCode  (string) ... 院區別 如 台大本院為 T0
+    + dictionaryId  (string) ... 常用清單所對應的 ID
+    + offset        (number) ... 設定回傳資料偏移數
+    + limit         (number) ... 設定最大回傳筆數
+    + patientClass  (string,optional) ... 病患門急住別 （如科部清單需要）
+
++ Response 200 (application/json)
+
+        {
+            "content": [
+                {
+                    "title": "with contrast",               // [string] 要顯示在介面上的內容
+                    "code":  "mri_dic001_001",              // [string, optional] 譬如需回傳的項目時回傳的值, 或是譬如科部清單所對應科部 code
+                    "note": "無法開立MRI 請洽MRI部門"          // [string, optional] 如果選取時需要顯示的額外提示 (如影像醫學的介面)
+                },
+                {
+                    "title": "without contrast",            // [string] 要顯示在介面上的內容
+                    "code": "mri_dic001_002"                // [string, optional] 如果是需回傳的項目時回傳的值
+                },
+                ...
+            ],
+            "total": 10,                // [number] 此次Query總筆數
+            "offset": 0,                // [number] 回傳資料偏移數
+            "limit": 100                // [number] 最大回傳筆數
+        }
+
+## 7/21 - 醫令套餐 [/orderPackage{?patientClass,type,department,wardCode,pathCode,accountNo,hospitalCode,sessionKey}]
+### 取得醫令套餐清單 [GET]
+
++ Parameters
+    + patientClass  (string) ... 病患門住急別 I 為住院 E 為急診
+    + hospitalCode  (string) ... 院區別 如 台大本院為 T0
+    + department    (string, optional) ... 欲搜尋套餐之科部
+    + wardCode      (string, optional) ... 欲搜尋套餐之病房
+    + accountNo     (string, optional) ... 欲搜尋病患之帳號
+    + type          (string) ... 'category' 為 全部, 檢驗, 檢查, 影醫, 核醫, 病理, 治療, 醫囑 'ward' 為病房 'department' 為科部 'employment' 為員工 'path' 為路徑
+    + sessionKey    (string) ... SessionKey
+
++ Response 200 (application/json)
+
+        {
+            "content" : [
+                {
+                    "packageName": "科部",                                       // [string] 顯示的title名
+                    "packageCode": "the_package_code",                          // [string, optional] 透過此碼查詢醫令
+                    "preset" : true,                                            // [boolean, optional] 預設選項，使用者選擇上一層選項之後，要預設選取的項目 [
+                    "children" : [ // [duplicate, optional]
+                        {
+                            "packageName": "內科部",                             // 顯示的title名  [string]
+                            "preset": true,                                     // [boolean, optional]
+                            "children" : [  // 如果有sublist的話, 則顯示此key  [duplicate, optional]
+                                {
+                                    "packageName": "骨髓移植 BMT",
+                                    "preset": true,                             // [boolean, optional]
+                                    "children": [  // [duplicate, optional]
+                                        {
+                                            "packageName" : "Admission Orders", // [string]
+                                            "packageCode" : "admissionorder",   // 透過此碼查詢醫令 [string, optional]
+                                            "preset" : true                     // [boolean, optional]
+                                        },
+                                        {
+                                            "packageName" : "Admission Lab",    // [string]
+                                            "packageCode" : "admissionlab"      // [string, optional]
+                                        },
+                                        {
+                                            "packageName" : "Routine Lab",      // [string]
+                                            "packageCode" : "routinelab"        // [string, optional]
+                                        },
+                                        {
+                                            "packageName" : "CPCR",             // [string]
+                                            "packageCode" : "cpcr"              // [string, optional]
+                                        },
+                                        ...
+                                    ]
+                                }, ...
+                            ]
+                        }, ...
+                    ]
+                },
+                {
+                    "packageName" : "病房",
+                    "children" : [ // [optional]
+                        {
+                            "packageName" : "Major Burn",
+                            "children" : [ // [optional]
+                                {
+                                    "packageName" : "照會",
+                                    "packageCode" : "A1234"
+                                },
+                                {
+                                    "packageName" : "醫囑",
+                                    "packageCode" : "A1235"
+                                },
+                                ...
+                            ]
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+
+
+## 7/8 - 醫令搜尋 [/orders{?name,packageCode,orderType,patientClass,hospitalCode,accountNo,searchType,sessionKey}]
+### 取得藥物清單 [GET]
+
++ Parameters
+    + name (string, optional)           ... 搜尋字串
+    + packageCode (string, optional)    ... 套餐代碼
+    + orderType (string, optional)      ... 指定要搜尋醫令的醫令種類
+    + patientClass (string, optional)   ... 病患的門住急別
+    + hospitalCode (string, optional)   ... 院區碼 如台大本院為 T0
+    + accountNo (string, optional)      ... 病患帳號
+    + searchType (string)               ... 搜尋來源種類 P 為來自醫令套餐 A 為來自病患帳號 N 為來自字串搜尋
+
++ Response 200 (application/json)
+
+        {
+            "content" : {
+                "field" : [
+                    {
+                        "fieldCode" : "orderType",
+                        "displayName" : "醫令類別"
+                    },
+                    {
+                        "fieldCode" : "DisplayCode",
+                        "displayName" : "醫令碼"
+                    },
+                    {
+                        "fieldCode" : "order",
+                        "displayName" : "醫令內容"
+                    },
+                    ...
+                ],
+                "data" : [
+                    {
+                        "orderCode" : "T0_00L0114_T",   // [string, required] 醫令碼
+                        "searchType": "P",              // [string] 搜尋來源類別
+                        "orderIdse": "128351",          // [string, optional] 醫囑預設參數識別碼如果沒有例如 searchType == N 不回傳
+                        "isVirtualOrder":   false,      // [boolean] 是否為虛擬醫令 如果是的話不能做 cache
+                        "display": "order",             // [string] a reference key to the data in the content; the data will be used as the display title
+                        "content" : {
+                            "DisplayCode" : "000L0114",
+                            "orderType" : "治療",
+                            "order"     : "複印全口顎Ｘ光照相"
+                        }
+                    },
+                    {
+                        "orderCode" : "T0_00L0224_T",   // [string, required] 醫令碼
+                        "searchType": "P",              // [string] 搜尋來源類別
+                        "orderIdse": "321110123",       // [string, optional] 醫囑預設參數識別碼如果沒有例如 searchType == N 不回傳
+                        "isVirtualOrder":   false,      // [boolean] 是否為虛擬醫令
+                        "display": "order",             // [string] a reference key to the data in the content; the data will be used as the display title
+                        "content" : {
+                            "DisplayCode" : "000L0113",
+                            "orderType" : "治療",
+                            "order"     : "複印咬合片Ｘ光照相 劑量: 20um"
+                        }
+                    },
+                    {
+                        "orderCode" : "T0_0033140_T",   // [string, required] 醫令碼
+                        "searchType": "P",              // [string] 搜尋來源類別
+                        "orderIdse": "11023",           // [string, optional] 醫囑預設參數識別碼如果沒有例如 searchType == N 不回傳
+                        "isVirtualOrder":   false,      // [boolean] 是否為虛擬醫令
+                        "display": "order",             // [string] a reference key to the data in the content; the data will be used as the display title
+                        "content" : {
+                            "DisplayCode" : "000L0112",
+                            "orderType" : "治療",
+                            "order"     : "複印根尖周Ｘ光照相"
+                        }
+                    },
+                    ...
+                ]
+            }
+        }
+
+## 6/29 - 病患 cre 值 [/patients/{chartNo}/cre{?sessionKey}]
+### 取得病患 cre 值報告 [GET]
++ Parameters
+    + sessionKey        (string) ... SessionKey
+
++ Response 200 (application/json)
+
+        {
+            "content": {
+                "cre": 31.2,
+                "note": "Cre值 > 2.2 除洗腎患者外需要..."     // [string,optional] 提示訊息 醫學影像介面使用
+            }
+        }
+
++ Response 404 (application/json)
+
+
+        {
+            "error": 104,                                   // [number] error code
+            "message": "找不到病患最近三個月的 cre 數值"         // [string] error message
+        }
+
+## 7/07 - 影像醫學介面內容 [/interface/order/MI/{imageType}{?sessionKey,hospitalCode}]
+### 取得介面內容 [GET]
++ Parameters
+    + sessionKey        (string) ... SessionKey
+    + imageType         (string) ... 影像種類，例如 CT, MRI, Plain
+    + hospitalCode      (string) ... 醫院院區碼
+
++ Response 200 (application/json)
+
+        {
+            "content": {
+                "note": "檢查範圍與內容影像 ...",                            // [string, optional] 注意事項，若無（Plain Film）則不用回傳
+                "patientInfoDictionaries": [
+                    "plain_film_dictionary_001",                          // [string] selection ID 用來在 dictionary 的 edge 搜尋對應的 content 以顯示
+                    "plain_film_dictionary_002",
+                    "plain_film_dictionary_003"
+                ],
+                "indicationOptions": [                                    // [optional] indication 所對應的選項，若無（Plain Film）則不用回傳
+                    "Follow Up",
+                    "Staging",
+                    ...
+                ],
+                "questionaries": [
+                    {
+                        "title": "是否需打顯影劑",
+                        "returnKey": "MRI_question_001",
+                        "options": [
+                            {
+                                "title": "with contrast",
+                                "returnValue": "optional_a",    // [string] 回傳時該選項所對應的值
+                                "note": "無法開立 MRI 請洽65641"  // [optional] 如果本選項被選取時，要顯示在介面上的警告提示
+                            },
+                            {
+                                "title": "without contrast",
+                                "returnValue": "optional_b"     // [string] 回傳時該選項所對應的值
+                            },
+                            {
+                                "title": "wiht/without contrast",
+                                "returnValue": "optional_c",    // [string] 回傳時該選項所對應的值
+                                "note": "無法開立 MRI 請洽65641"  // [optional] 如果本選項被選取時，要顯示在介面上的警告提示
+                            }
+                        ]
+                    },
+                    ...
+                ],
+                "groups": [
+                    {
+                        "title": "四肢與脊椎常用醫令",                                           // [string, optional] Group 標題 若無則不用回傳
+                        "sections": [
+                            {
+                                "title": "Upper Extremity",                                 // [string] Section 標題
+                                "selections": [
+                                    {
+                                        "title": "Shoulder",                                // [string] 子 Section 標題
+                                        "elements": [                                       // 子 Section 內可以勾選的項目
+                                            {
+                                                "title": "Both shoulder in one film",       // [string] 項目名稱
+                                                "returnKey": "item_00_00_00",               // [string] 回傳項目結果時所對應的鍵值
+                                                "location": 0                               // [number] 左右選項 index 0 :NONE  1: RIGHT(畫面左邊)   2: LEFT(畫面右邊)
+                                            },
+                                            {
+                                                "title": "Shoulder both in one film for Clavicle",  // [string] 項目名稱
+                                                "returnKey": "item_00_00_01",               // [string] 回傳項目結果時所對應的鍵值
+                                                "location": 0                               // [number] 左右選項 index 0 :NONE  1: RIGHT(畫面左邊)   2: LEFT(畫面右邊)
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "title": "Special",                         // [string] 子 Section 標題
+                                        "elements": [                               // 子 Section 內可以勾選的項目
+                                            {
+                                                "title": "Temporal bone",           // [string] 項目名稱
+                                                "returnKey": "temporal_bone_flag",  // [string] 回傳項目結果時所對應的鍵值
+                                                "location": 0                       // [number] 左右選項 index 0 :NONE  1: RIGHT(畫面左邊)   2: LEFT(畫面右邊))
+                                            },
+                                            {
+                                                "title": "AP+Y View",               // [string] 項目名稱
+                                                "returnKey": "ct_cisternography",   // [string] 回傳項目結果時所對應的鍵值
+                                                "location": 1                       // [number] 左右選項 index 0 :NONE  1: RIGHT(畫面左邊)   2: LEFT(畫面右邊)
+                                            },
+                                            ...
+                                        ]
+                                    },
+                                    ...
+                                ]
+                            },
+                            ...
+                        ]
+                    },
+                    ...
+                ],
+                "others": [  // [optional] 其它可勾選項目，若無則不用回傳
+                    {
+                        "title": "MR-PET",                                          // [string] 項目名稱
+                        "returnKey": "others_mr_pet",                               // [string] 回傳項目結果時所對應的鍵值
+                        "location": 0                                               // [number] 左右選項 index 0 :NONE  1: RIGHT(畫面左邊)   2: LEFT(畫面右邊)
+                    },
+                    ...
+                ]
+            }
+        }
+
+## 6/25 - 醫令碼所對應的醫令 [/order/{orderCode}{?sessionKey,patientClass}]
+### 取得醫令資訊 [GET]
+
++ Parameters
+    + sessionKey        (string) ... SessionKey
+    + patientClass      (string) ... 病患門急住別
+
++ Response 200 (application/json)
+
+        {
+            "content": [
+                {
+                    "orderCode":        "T0_123123_T",              // [string] 醫令碼包含 院區碼_ID_醫令類別
+                    "hospitalCode":     "HQ",                       // [string] 院區碼
+                    "orderName":        "測試醫令",                  // [string] 醫令名稱
+                    "screenNote":       "重要提示",                  // [string, optional] 重要提示 顯示於介面中
+                    "isEmergency":      true,                       // [boolean] 是否支援急做
+                    "subType":          "N",                        // [string, optional] orderType = T 時使用 一般為 N, 手術為 O, 麻醉為 A, 齒位為 D, 技工所為 E, 復健為 P
+                    "requireCreInfo":   false,                      // [boolean] 是否需要顯示 cre 介面,
+                    "planExecutionTimeFormat": "yyyy/mmdd HH",      // [string] 預計執行時間的 format
+                    "specimenList":     [                           // [optional] orderType = L 時使用
+                        {
+                            "code": "ts1",                  // [string] 檢體代號
+                            "title": "TEST_SPECIMEN_1",     // [string] 檢體名稱
+                            "selected": false               // [boolean] 預設選取的時候回傳 True 否則回傳 False
+                        },
+                        {
+                            "code": "ts2",                  // [string] 檢體代號
+                            "title": "TEST_SPECIMEN_2",     // [string] 檢體名稱
+                            "selected": true                // [boolean] 預設選取的時候回傳 True 否則回傳 False
+                        },
+                        ...
+                    ],
+                    "appendOrders":     [                   // [optional] 附帶醫令，若無則不用回傳
+                        {
+                            "orderCode":    "T0_00123110_K",        // [string] 醫令碼
+                            "orderName":    "Testing Order2",       // [string] 醫令名稱
+                            "quantity":     1,                      // [number] 數量
+                            "billType":     "Z",                    // [string] 記帳類別，自費為 Z 健保為 E 內含為 U
+                            "required":     false,                  // [boolean] 是否為必帶醫令
+                            "selected":     true                    // [boolean] 是否預設被選取
+                        },
+                        {
+                            "orderCode":    "T0_00123110_K",        // [string] 醫令碼
+                            "orderName":    "Testing Order3",       // [string] 醫令名稱
+                            "quantity":     4,                      // [number] 數量
+                            "billType":     "Z",                    // [string] 記帳類別，自費為 Z 健保為 E 內含為 U
+                            "required":     true,                   // [boolean] 是否為必帶醫令
+                            "selected":     true                    // [boolean] 是否預設備選取
+                        },
+                        ...
+                    ],
+                    "questionaries":  [                             // [optional] 附帶問題內容，若無則不用回傳
+                        {
+                            "title": "SINGLE_SELECTION",            // [string] 問題顯示題目
+                            "returnKey": "s_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "S",                            // [string] 問題種類，如日期為 D，單選為 S
+                            "required": true,                       // [boolean] 問題是否為必填項目
+                            "defaultPriority": 0,                   // [number, optional] 預設選取項目之順序代號，當類型為 S 或 M 時使用
+                            "options": [                            // [optional] 選擇項目列表，當類型為 S, M 時使用
+                                {
+                                    "title": "OPTIONA: A",          // [string] 選項顯示內容
+                                    "returnValue": "optional_a",    // [string] 回傳時該選項所對應的值
+                                    "priority": 0                   // [number] 選項顯示順序
+                                },
+                                {
+                                    "title": "OPTIONAL: B",         // [string] 項目顯示內容
+                                    "returnValue": "optiona_b",     // [string] 回傳時該選項所對應的值
+                                    "priority": 1                   // [number] 項目顯示順序
+                                },
+                                ...
+                            ],
+                            "freeSelectionEnable": false            // [optional, boolean] 是否允許增添選項，當類型為 S, M 時使用
+                        },
+                        {
+                            "title": "DATE_SELECTION",              // [string] 問題顯示題目
+                            "returnKey": "d_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "D",                            // [string] 問題種類，如日期為 D，單選為 S
+                            "required": true,                       // [boolean] 問題是否為必填項目
+                            "dateFormat": "YYYYMMDD:HH",            // [optional, string] 當類型為 D 時使用
+                            "defaultDate": 1406938026               // [optional, number(timestamp)] 預設顯示日期，當類型為 D 時使用
+                        },
+                        {
+                            "title": "INPUT_BOX",                   // [string] 問題顯示題目
+                            "returnKey": "input_box_example",       // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "T",                            // [string] 問題種類，如單行文字框為 T 多行文字框為 P
+                            "required": false,                      // [boolean] 問題是否為必填項目
+                            "dictionary": [                         // [optional] 常用字彙，當類型為 T 或 P 時可使用
+                                "ped_1",
+                                "ped_2",
+                                "operation_AS1",
+                                "operation_AS2",
+                                ...
+                            ]
+                        },
+                        {
+                            "title": "MULTI_LINE_BOX",              // [string] 問題顯示題目
+                            "returnKey": "multi_line_example",      // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "P",                            // [string] 問題種類，如單行文字框為 T 多行文字框為 P
+                            "required": false,                      // [boolean] 問題是否為必填項目
+                            "dictionaryId": "DIC_3201"              // [optional, string] 大型常用字彙對應之編號，當類型為 T 或 P 時可使用
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        }
+
+
+## 6/25 - 醫令碼所對應的醫令 [/order/{orderCode}/defaultValues{?sessionKey,accountNo,searchType,patientClass,orderIdse,planDate,orderStage,planExecutionTime}]
+### 取得醫令範本的預設值 [GET]
++ Parameters
+    + sessionKey        (string) ... SessionKey
+    + accountNo         (string) ... 帳號
+    + searchType        (string) ... 搜尋類別來源 P,  A
+    + patientClass      (string) ... 門住急別
+    + orderIdse         (string, optional) ... 搜尋藥囑而外識別碼
+    + planExecutionTime (string, optional) ... 預設預計執行時間
+    + orderStage        (string, optional) ... 預設預計執行階段
+
++ Response 200 (application/json)
+
+        {
+            "content": [
+                {
+                    "orderCode": "T0_3211234_L",            // [string] 對應的 orderCode 以供處理虛擬醫囑時使用
+                    "isPAT": true,                          // [boolean] 是否需要預設 (入院檢查) 到 orderName 之中顯示（以及開立時上傳）
+                    "quantity": 3,                          // [number, optional] 預設的 quantity 如果沒有預設不用會傳
+                    "billType": "U",                        // [string, optional] 預設的計價別 (U內含的話顯示內含不可打勾、Z自費打勾、E則不勾) 如果沒有預設不用會傳
+                    "orderStage": 1,                        // [number, optional] 預設執行階段的代號 如果沒有預設不用會傳
+                    "specialInstruction": "特殊醫囑敘述",     // [string, optional] 預設特殊醫囑的帶入值 如果沒有預設不用會傳
+                    "frequency": "STAT",                    // [string, optional] orderType = K 時使用 如果沒有預設不用會傳
+                    "endActiveDatetime": "20151301",        // [string, optional] orderType = K 時使用 如果沒有預設不用會傳
+                    "specimenValue": "BLO",
+                    "planExecutionTime": {                  // 預計執行時間相關資訊
+                        "value": 130032013,                 // [number(timestamp), optional] 預計執行時間預設值之 unix timestamp 如果沒有不用回傳
+                        "editable": true,                   // [boolean] 是否可以修改
+                        "message": "不需排程"                 // [string, optional] 如果有回傳的話 不會顯示時間額是改顯示 message 的文字內容
+                    }
+                },
+                ...
+            ]
+        }
+
+## 7/20 病患醫令記錄 [/account/{accountNo}/orderRecords{?orderCode,orderName,sessionKey,orderRecordId}]
+
+### 開立醫令 [POST]
+
++ Request IssueRegularOrders (application/json)
+
+        {
+            "content": [
+                {
+                    "requestID": "20150907_111281_001", // [string] 開立請求ID 於回傳開立結果時使用
+                    "orderCode": "T0_0001234_T",        // [string] 醫令碼
+                    "orderName": "TEST_ORDER_001",      // [string] 醫令名稱
+                    "orderStage": "PAT",                // [string] 醫令階段
+                    "frequency": "STAT",                // [string, optional] K 類醫囑使用, 頻率
+                    "endActiveDatetime": "20160201",    // [string, optional] K 類醫囑使用, 結束日期 YYYYMMDD(:HH)
+                    "specimenValue": "BLO",             // [string, optional] L 類醫囑使用
+                    "quantity": 3,                      // [number] 數量
+                    "billType": "E",                    // [string] 記帳類別
+                    "isEmergency": false,               // [boolean] 是否急做
+                    "planExecutiontime": {              // [optional] 預計執行時間相關資訊
+                        "timestamp": 13001321,          // [number(timestamp)] 執行時間的 timestamp 數值
+                    	"format": "YYYY/MM/DD"          // [string] 有關執行時間要如何顯示的 datetime format
+                    },
+                    "creInfo": {                        // [optional] 當醫令 requireCreInfo=true 需要顯示 cre 介面時會回傳
+                        "cre": 22.3,                    // [number, optional] 如果有需要填入 cre 值時所填入的數值 且有填入數值時會回傳
+                        "emergency": false              // [boolean] 生命危及之緊急狀況項目是否被勾選
+                    },
+                    "specialInstruction": "Test 1",     // [string] 特殊醫囑
+                    "questionaries": [                  // [optional] 問答題答案，若無則不會傳入
+                        {
+                            "returnKey": "d_selection_example",     // [string] 問答題對應鍵值
+                            "type": "S",                            // [string] 問答題類型
+                            "selected": [                           // [optional] 選取之選項，若單選則 list 只會有一個值
+                                "option_001"                        // [string]
+                            ]
+                        },
+                        {
+                            "returnKey": "input_box_example",       // [string] 問答題對應鍵值
+                            "type": "T",                            // [string] 問答題類型
+                            "value": "this is the input content"    // [string, optional] 輸入之文字
+                        },
+                        {
+                            "returnKey": "d_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "D",                            // [string] 問題種類，如日期為 D，單選為 S
+                            "value": "20151001"                     // [string, optional] dateFormat 會依照 /order 回來的指示
+                        },
+                        ...
+                    ],
+                    "appendOrders": [ // [optional] 附帶醫令，若無則不會傳入
+                        "TSA123001",  // [string] appendOrder 的 returnKey, 指到某個醫令和預設值的 entity
+                        "K00123110",
+                        ...
+                    ]
+                },
+                ...
+            ],
+            "sessionKey": "E0B27FAAAE68415BA9E011E569FE4009",           // [string] SessionKey
+            "forMIOrders": false                                        // [boolean] 是否為請求影像醫學的 order
+        }
+
++ Response 200 (application/json)
+
+        {
+            "success": True,
+            "content": [
+                {
+                    "requestID":"20150907_111281_001",
+                    "orderRecordId": "00321123112",
+                    "success": true
+                },
+                {
+                    "requestID":"20150907_111281_002",
+                    "orderRecordId": "00321123112",
+                    "success": true
+                },
+                ...
+            ]
+        }
+
++ Response 400 (application/json)
+
+        {
+            "error": 802,
+            "content": [
+                {
+                    "requestID":"20150907_111281_001",      // [string] 開立請求ID
+                    "orderRecordId": "00321123112",         // [string, optional] 開立成功之記錄ID
+                    "success": true                         // [boolean] 是否成功開立該醫囑
+                },
+                {
+                    "requestID":"20150907_111281_002",      // [string] 開立請求ID
+                    "success": false,                       // [boolean] 是否成功開立
+                    "message": "無此醫令/超過可開醫令數量"      // [string, optional] 錯誤訊息
+                },
+                {
+                    "requestID":"20150907_111281_003",      // [string] 開立請求ID
+                    "success": false,                       // [boolean] 是否成功開立
+                    "message": "無此醫令/超過可開醫令數量"      // [string, optional] 錯誤訊息
+                }
+            ]
+        }
+
+### 刪除醫令 [DELETE]
++ Parameters
+    + sessionKey    (string) ... SessionKey
+    + orderRecordId (string) ... 欲刪除之醫令交易檔 ID
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
+## 7/20 開立影像醫學醫令 [/account/{accountNo}/orderRecords{?orderCode,sessionKey,orderRecordId}]
+### 從快速開立介面開立影像醫學醫令 [POST]
+
++ Request IssueMedicalImageOrders (application/json)
+
+
+        {
+            "content": {
+                "billType": "E",                                // [string] 記帳類別
+                "isEmergency": false,                           // [boolean] 是否急做
+                "questionaries": [
+                    {
+                        "returnKey": "MRI_question_001",                    // [string] 選單介面所對應的 returnKey
+                        "selected": "optional_a"                            // [string] 對於這個問題使用者所選取項目的 returnValue
+                    },
+                    {
+                        "returnKey": "MRI_question_002",                    // [string] patientInfo 所對應的問題的 dictionaryId
+                        "selected": "optiona_b"                             // [string] 對於這個問題使用者所選取項目的 returnValue
+                    },
+                    ...
+                ],
+                "indication": "Follo Up",                       // [optional] CT 或 MRI 需要回傳
+                "selections": [                                 // 所有被選取的 item 的 return keys
+                    "whole_brain_scan",
+                    "pherrior_fassa",
+                    ...
+                ],
+                "specialInstruction": "xxx",                    // [string] 特殊醫囑之輸入內容
+                "creInfo": {
+                    "cre": 22.3,                                // [number, optional] 如果有需要填入 cre 值時所填入的數值 只有在系統查佈道病患 cre 值且使用者有填值時才會回傳
+                    "emergency": true,                          // [boolean, optional] 生命危及之緊急狀況項目是否被勾選 只有在系統查不到病患 cre 值才要回傳
+                    "creatinine": false                         // [boolean] 加開 creatinine 是否被勾選
+                }
+            },
+            "imageType": "Plain",                               // [string] 影像類別 MRI, CT 或 Plain
+            "forMIOrders": true,                                // [boolean] 是否為請求影像醫學的 order
+            "sessionKey": "E0B27FAAAE68415BA9E011E569FE4009"    // [string] SessionKey
+        }
+
+
++ Response 200 (application/json)
+
+        {
+            "success": True,
+            "content": {
+                "orderRecordIds": {
+                    "1": "T12312311111",     // [string] 醫令交易檔 ID
+                    "2": "K23111222222",     // [string] 醫令交易檔 ID
+                    ...
+                }
+            }
+        }
+
++ Response 400 (application/json)
+
+        {
+            "error": 802,
+            "content": {
+                "succeeded": {  // [optional] 回傳成功開立的醫令之清單，若無則不用回傳
+                    "orderRecordIds": {
+                        "2": "K23111222222",
+                        ...
+                    }
+                },
+                "failed": [     // 未能成功開立的醫令之清單，內容為該醫令所對應之鍵值
+                    "1",
+                    "3",
+                    ...
+                ],
+                "message": "ERROR DESCRIPTION"  // [string] 有關請求錯誤之描述
+            }
+        }
+
+
+## 6/16 醫令交易檔 ID 所對應之病患醫令記錄 [/account/{accountNo}/orderRecord/{orderRecordId}{?quantity,billType,expectedExTime,confirmedTime,stage,status,sessionKey,orderRecordIds,verifier,isEmergency,specialInstruction}]
+
+### 取得醫令記錄內容 [GET]
++ Parameters
+    + sessionKey    (string) ... SessionKey
+
++ Response 200 (application/json)
+
+
+        {
+            "content": {
+                "orderType": "P",                   // [string] 醫令主類別
+                "orderSeqNo": "P0002",              // [string] 醫令序號 (登記排程使用)
+                "hospitalCode": "HQ",               // [string] 院區碼
+                "accountNo": "8ccoun7n0",           // [string] 記帳帳號
+                "orderName": "Testing Order",       // [string] 醫令名稱
+                "patientClass": "E",                // [string] 病患門住急別
+                "quantity": 10,                     // [number] 數量
+                "billType": "Z",                    // [string] 記帳類別，自費為 Z 健保為 E 內含為 U
+                "planExecutiontime": {              // [optional] 預計執行時間相關資訊
+                    "timestamp": 13001321,          // [number(timestamp)] 執行時間的 timestamp 數值
+                    "format": "YYYY/MM/DD"          // [string] 有關執行時間要如何顯示的 datetime format
+                },
+                "confirmedTime": 1407038026,        // [number(timestamp)] 確認時間
+                "creator": "111281",                // [string] 開立醫囑者員工編號
+                "verifier": "111281",               // [string] 確認醫師員工編號
+                "isEmergency": false,               // [boolean] 是否急做
+                "stage": 0,                         // [number] 階段代碼 詳細對應資料從 dictionary 抓
+                "status": "開立",                    // [string] 狀態
+                "specialInstruction": "特殊醫囑內容",  // [string] 特殊醫囑
+                "startActivateDatetime": 1435744800, // [number(timestamp), optional] 醫令有效起日 K類醫囑使用
+                "endActivateDatetime": 1438423200,   // [number(timestamp), optional] 醫令有效迄日 K類醫囑使用
+                "frequency": "QD",                   // [string] 頻率碼 K類醫囑使用
+                "isBedside": false,                  // [boolean, optional] 是否為床邊攝影 R類醫囑使用
+                "specimenValue": "sp1",               // [string] 檢體代碼 L類醫囑使用
+                "questionaries": [                     // [optional] 問題清單答案
+                    {
+                        "displayTitle": "SINGLE_SELECTION",     // [string] 問題顯示題目
+                        "returnKey": "s_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                        "type": "S",                            // [string] 問題種類，如日期為 D，單選為 S
+                        "required": true,                       // [boolean] 問題是否為必填項目
+                        "defaultSelections": [                  // [optional] 預設或已選取項目之順序代號，當類型為 S 或 M 時使用
+                            0,                                  // [number] 預設或已選取項目對應之順序代號
+                            2,
+                            ...
+                        ],
+                        "options": [                            // [optional] 選擇項目列表，當類型為 S, M 時使用
+                            {
+                                "displayValue": "OPTIONA: A",   // [string] 選項顯示內容
+                                "returnValue": "optional_a",    // [string] 回傳時該選項所對應的值
+                                "priority": 0                   // [number] 選項顯示順序
+                            },
+                            {
+                                "displayValue": "OPTIONAL: B",  // [string] 項目顯示內容
+                                "returnValue": "optiona_b",     // [string] 回傳時該選項所對應的值
+                                "priority": 1                   // [number] 項目顯示順序
+                            },
+                            ...
+                        ],
+                        "freeSelectionEnable": false            // [optional, boolean] 是否允許增添選項，當類型為 S, M 時使用
+                    },
+                    {
+                        "displayTitle": "DATE_SELECTION",       // [string] 問題顯示題目
+                        "returnKey": "d_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                        "type": "D",                            // [string] 問題種類，如日期為 D，單選為 S
+                        "required": true,                       // [boolean] 問題是否為必填項目
+                        "dateFormat": "DD",                     // [optional, string] 當類型為 D 時使用
+                        "defaultDate": 1406938026               // [optional, number(timestamp)] 預設或已經填入之答案，當類型為 D 時使用
+                    },
+                    {
+                        "displayTitle": "INPUT_BOX",            // [string] 問題顯示題目
+                        "returnKey": "input_box_example",       // [string] 回傳結果時該問題所對應的鍵值
+                        "type": "T",                            // [string] 問題種類，如單行文字框為 T 多行文字框為 P
+                        "required": false,                      // [boolean] 問題是否為必填項目
+                        "dictionary": [                         // [optional] 常用字彙，當類型為 T 或 P 時可使用
+                            "ped_1",
+                            "ped_2",
+                            "operation_AS1",
+                            "operation_AS2",
+                            ...
+                        ],
+                        "defaultText": "ped_1, ped_2"           // [optional, string] 預設或已經輸入之內容，當類型為 T, P 時使用
+                    },
+                    ...
+                ]
+            }
+        }
+
+### 更改醫令記錄內容 [PUT]
++ Parameters
+    + orderRecordId      (string) ... 要更改記錄之 orderRecordId
+    + quantity           (number) ... 數量
+    + billType           (number) ... 記帳類別
+    + expectedExTime     (number) ... 預計執行時間
+    + confirmedTime      (number) ... 確認時間
+    + verifier           (string) ... 確認醫師員工編號
+    + isEmergency        (boolean) ... 是否急做
+    + status             (string) ... 階段
+    + stage              (string) ... 狀態
+    + specialInstruction (string) ... 特殊醫囑內容
+
++ Request ModifyOrder (application/json)
+
+        {
+            "content": [
+                {
+                    "requstID": "account_0001_0001",     // [string]
+                    "hospitalCode": "HQ",                // [string] 院區碼
+                    "quantity": 3,                       // [number] 數量
+                    "billType": "E",                     // [string] 記帳類別
+                    "confirmedTime": 1438423200,         // [number(timestamp)] 確認時間
+                    "verifier": "111283",                // [string]  確認醫師員工編號
+                    "isEmergency": false,                // [boolean] 是否急做
+                    "planExecutiontime": {              // [optional] 預計執行時間相關資訊
+                    	"timestamp": 13001321,     // [number(timestamp)] 執行時間的 timestamp 數值
+                    	"format": "YYYY/MM/DD"     // [string] 有關執行時間要如何顯示的 datetime format
+                    },
+                    "specialInstruction": "Test 1",      // [string] 特殊醫囑
+                    "startActivateDatetime": 1435744800, // [number(timestamp), optional] 醫令有效起日 K類醫囑使用
+                    "endActivateDatetime": 1438423200,   // [number(timestamp), optional] 醫令有效迄日 K類醫囑使用
+                    "frequency": "QD",                   // [string] 頻率碼 K類醫囑使用
+                    "isBedside": false,                  // [boolean, optional] 是否為床邊攝影 R類醫囑使用
+                    "specimenValue": "sp1",               // [string] 檢體代碼 L類醫囑使用
+                    "questionaries": [                   // [optional] 問答題答案，若無則不會傳入
+                        {
+                            "returnKey": "d_selection_example",     // [string] 問答題對應鍵值
+                            "type": "S",                            // [string] 問答題類型
+                            "selected": [                           // [optional] 選取之選項，若單選則 list 只會有一個值
+                                "option_001"                        // [string]
+                            ]
+                        },
+                        {
+                            "returnKey": "input_box_example",       // [string] 問答題對應鍵值
+                            "type": "T",                            // [string] 問答題類型
+                            "value": "this is the input content"    // [string, optional] 輸入之文字
+                        },
+                        {
+                            "returnKey": "d_selection_example",     // [string] 回傳結果時該問題所對應的鍵值
+                            "type": "D",                            // [string] 問題種類，如日期為 D，單選為 S
+                            "value": "20151001"                     // [string, optional] dateFormat 會依照 /order 回來的指示
+                        }
+                        ...
+                    ],
+                    "appendOrders": [ // [optional] 附帶醫令，若無則不會傳入
+                        "T0_SA123001_T",  // [string] 醫令碼 orderCode
+                        "T0_00123110_K",
+                        ...
+                    ]
+                }
+            ],
+            "sessionKey": "E0B27FAAAE68415BA9E011E569FE4009"
+        }
+
+
++ Response 200 (application/json)
+
+        {
+            "success": true
+        }
+
++ Response 400 (application/json)
+
+        {
+            "error": 802,                                   // [number] Error Code
+            "message": "THE LOCAL ERROR DESCRIPTION"        // [string] 錯誤訊息
+        }
+
+
+## 9/16 刪除多筆病患醫令記錄 [/order/batch]
+### 刪除多筆病患醫令記錄[POST]
++ Reqeust Delete orderRecord(s)
+
+        {
+            "sessionKey": "DE44A33624064BFCB0BBAFDB9A509C16",
+            "requests": [
+                {
+                    "requestId": "request001",
+                    "path": "/account/{accountNo}/orderRecords?orderRecordId=T32132012",
+                    "method": "DELETE"
+                },
+                {
+                    "requestId": "request002"
+                    "path": "/account/{accountNo}/orderRecords?orderRecordId=T32132013",
+                    "method": "DELETE"
+                },
+                ...
+            ]
+        }
+
++ Response 200 (application/json)
+
+        {
+            "request_001": {
+                "success": true
+            },
+            "request_002": {
+                "success": true
+            }
+        }

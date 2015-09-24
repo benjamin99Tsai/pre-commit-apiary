@@ -16,7 +16,7 @@ from pre_commit_hook.apiary import _state_read_request_tag
 from pre_commit_hook.apiary import _state_read_response_tag
 from pre_commit_hook.error import ApiaryError, ApiarySyntaxError, ApiaryParameterNotDefinedError
 
-DEBUG=False
+DEBUG = False
 
 _TEST_GROUP_TITLE = '# Group TEST API GROUP'
 _TEST_API_TITLE = '## test api [/test/api/pattern]'

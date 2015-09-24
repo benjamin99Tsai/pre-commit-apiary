@@ -11,6 +11,7 @@ from pre_commit_hook.apiary import _response_title
 
 from unittest import TestCase
 
+
 # Define the testCase
 class ApiaryPatternsTest(TestCase):
 

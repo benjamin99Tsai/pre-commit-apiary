@@ -3,7 +3,7 @@ __author__ = 'Arsenal_49'
 import re
 import string
 from pre_commit_hook.decoder import ApiDecoder as ContentDecoder
-from pre_commit_hook.error import ApiarySyntaxError, ApiaryParameterNotDefinedError
+from pre_commit_hook.error import ApiarySyntaxError, ApiaryParameterNotDefinedError, ApiaryError
 
 # Define the pattern match/search
 _group_title = re.compile(r'^#(\s)+.*').match
@@ -38,6 +38,7 @@ class ApiaryValidator:
 
     def validate_file(self, file, verbose=False):
         validation_result = True
+        error = None
         assert isinstance(file, str)
         try:
             with open(file, 'r') as f:
@@ -47,6 +48,7 @@ class ApiaryValidator:
             print('Error: could not find the file %s' % file)
             lines = list()
             validation_result = False
+            error = ApiaryError(messssage='could not find the file: %s' % file)
 
         line_count = 0
         for line in lines:
@@ -59,7 +61,7 @@ class ApiaryValidator:
                 validation_result = False
                 break
 
-        return validation_result
+        return validation_result, error
 
     def _read_line(self, line):
         error = None
