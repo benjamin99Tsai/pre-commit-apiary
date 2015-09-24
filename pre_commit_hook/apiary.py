@@ -48,7 +48,7 @@ class ApiaryValidator:
             print('Error: could not find the file %s' % file)
             lines = list()
             validation_result = False
-            error = ApiaryError(messssage='could not find the file: %s' % file)
+            error = ApiaryError(message='could not find the file: %s' % file)
 
         line_count = 0
         for line in lines:
