@@ -32,7 +32,7 @@ def validate(argv=None):
     args = arg_parser.parse_args(argv)
 
     for filename in args.filenames:
-        result, error = _validate_with_filename(filename)
+        valid, error = _validate_with_filename(filename)
         if error is not None:
             print('validation not pass with file: %s' % filename)
             result = -1
