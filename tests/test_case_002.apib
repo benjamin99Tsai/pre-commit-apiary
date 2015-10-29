@@ -1,0 +1,72 @@
+# Group 開發中 Phase2 Order APIs
+
+## 10/27 確認多筆病患醫令記錄 [/order/batch]
+### 確認或刪除多筆病患醫令記錄 [POST]
+
++ Request Confirm orderRecord(s)
+
+        {
+            "sessionKey": "DE44A33624064BFCB0BBAFDB9A509C16",
+            "requests": [
+                {
+                    "requestId": "request_001",
+                    "path": "/account/{accountNo}/orderRecord/T32132012",
+                    "method": "PATCH",
+                    "body": {
+                        "content": {
+                            "confirmedTime": 1438423200,         // [number(timestamp)] 確認時間
+                            "verifier": "111283"                 // [string]  確認醫師員工編號
+                        }
+                    }
+                },
+                {
+                    "requestId": "request_001",
+                    "path": "/account/{accountNo}/orderRecord/T32132013",
+                    "method": "PATCH",
+                    "body": {
+                        "content": {
+                            "confirmedTime": 1438423200,         // [number(timestamp)] 確認時間
+                            "verifier": "111283"                 // [string]  確認醫師員工編號
+                        }
+                    }
+                },
+                ...
+            ]
+        }
+
+
++ Request Delete orderRecord(s)
+
+        {
+            "sessionKey": "DE44A33624064BFCB0BBAFDB9A509C16",
+            "requests": [
+                {
+                    "requestId": "request001",
+                    "path": "/account/{accountNo}/orderRecords?orderRecordId=T32132012",
+                    "method": "DELETE"
+                },
+                {
+                    "requestId": "request002",
+                    "path": "/account/{accountNo}/orderRecords?orderRecordId=T32132013",
+                    "method": "DELETE"
+                },
+                ...
+            ]
+        }
+
++ Response 200 (application/json)
+
+
+        {
+            "requests": [
+                {
+                    "requestId": "request001",
+                    "success": true
+                },
+                {
+                    "requestId": "request002",
+                    "success": true
+                }
+                ...
+            ]
+        }
