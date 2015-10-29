@@ -16,6 +16,7 @@ class ApiarySyntaxError(ApiaryError):
         self.message = message
         self.type = 'SyntaxError'
 
+
 class ApiaryParameterNotDefinedError(ApiaryError):
 
     def __init__(self, parameter=None):
