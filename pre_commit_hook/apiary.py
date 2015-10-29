@@ -131,12 +131,17 @@ class ApiaryValidator:
                 self.state = _state_error
 
         elif self.state == _state_read_request_tag:
+            test_line = line
             if _response_title(line):
                 if not self.decoder.get_parsed_objects():
                     error = ApiarySyntaxError(message='Missing request content')
                     self.state = _state_error
                 else:
                     self._prepare_for_scanning_response_content()
+
+            elif _request_title(line):
+                self._prepare_for_scanning_request_content()
+
             else:
                 error = self._scan_line_by_decoder(line)
 

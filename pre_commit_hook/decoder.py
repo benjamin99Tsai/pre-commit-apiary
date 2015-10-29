@@ -43,6 +43,7 @@ def _get_api_response_element_from_element_and_comment(element, comment):
 
         return api_response_element
 
+
 def _get_api_response_element_from_element(element):
     """
     >>> d = ApiDecoder()
@@ -64,6 +65,7 @@ def _get_api_response_element_from_element(element):
     raise ApiParsingException(
         message="input element type(%s) does not match any ApiResponseElement" % type(element)
     )
+
 
 def _validate_element_with_string_type(element, string_type):
     valid = True
@@ -163,6 +165,7 @@ class ApiDictionaryObject(ApiBaseObject):
     def __len__(self):
         return len(self._base_element)
 
+
 class ApiArrayObject(ApiBaseObject):
     """
         # For doctest:
@@ -221,11 +224,12 @@ class ApiArrayObject(ApiBaseObject):
     def __len__(self):
         return len(self._base_element)
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 #  The Decoder:
 # ----------------------------------------------------------------------------------------------------------------------
 class ApiDecoder(object):
-    _str_search      = re.compile(r'\"[\b@\b%\w\_\-\.\s,\:\/\[\]\(\)\{\}\~\<\>\&\+\\]*\"', re.UNICODE).search
+    _str_search      = re.compile(r'\"[\b@\b%\w\_\-\.\s,\:\/\[\]\(\)\{\}\?\=\~\<\>\&\+\\]*\"', re.UNICODE).search
     _comment_tag     = re.compile(r'\/\/').search
     _url_search      = re.compile(r'(http(s)*:)\/\/').search
     _comment_search  = re.compile(r'\[[a-zA-Z\s\w\_\-\.0-9,\(\)]*\]').search
