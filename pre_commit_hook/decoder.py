@@ -229,7 +229,7 @@ class ApiArrayObject(ApiBaseObject):
 #  The Decoder:
 # ----------------------------------------------------------------------------------------------------------------------
 class ApiDecoder(object):
-    _str_search      = re.compile(r'\"[\b@\b%\w\_\-\.\s,\:\/\[\]\(\)\{\}\?\=\~\<\>\&\+\\]*\"', re.UNICODE).search
+    _str_search      = re.compile(r'\"[\b@\b%\w\_\-\.\s,\:\/\[\]\(\)\{\}\?\*\=\~\<\>\&\+\\]*\"', re.UNICODE).search
     _comment_tag     = re.compile(r'\/\/').search
     _url_search      = re.compile(r'(http(s)*:)\/\/').search
     _comment_search  = re.compile(r'\[[a-zA-Z\s\w\_\-\.0-9,\(\)]*\]').search
