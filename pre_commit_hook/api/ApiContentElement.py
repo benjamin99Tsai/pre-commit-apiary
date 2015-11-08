@@ -318,11 +318,10 @@ class ApiContentArrayElement(ApiContentSetElement):
     def add_element(self, element, key=None):
         super(ApiContentArrayElement, self).add_element(element)
         # If already have one element in the list, first check if they are the same, and than merge both elements
-        if len(self.content):
+        if len(self.content) and isinstance(element, ApiContentDictionaryElement):
             original = self.content.pop()
             assert element == original, 'Syntax Error: trying to add element to the Array which is not match'
-            if isinstance(element, ApiContentDictionaryElement):
-                element.merge(original)
+            element.merge(original)
         self.content.append(element)
         element.set_parent(self)
 
